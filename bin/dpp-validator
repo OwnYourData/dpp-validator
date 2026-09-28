@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require_relative "../lib/dpp_validator"
+
+exit DppValidator::Cli.new(ARGV).call
