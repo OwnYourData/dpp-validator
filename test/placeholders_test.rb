@@ -16,11 +16,37 @@ class PlaceholdersTest < ValidatorTestCase
     assert_equal "/dppsByIdAndDate/did%3Aoyd%3AzQm1?date=2026-09-28T12%3A00%3A00Z", p.expand_path("/dppsByIdAndDate/{dppId}?date={now}")
   end
 
-  test "values elsewhere are inserted as they are, also in nested bodies and JSONPath" do
+  test "values in headers, bodies and expected values are inserted as they are" do
     p = placeholders
     assert_equal ["https://example.org/01/1?x=y"], p.expand(["{productId}"])
     assert_equal({ "id" => "did:oyd:zQm1", "n" => 42 }, p.expand({ "id" => "{dppId}", "n" => 42 }))
-    assert_equal "$..[?@ == 'did:oyd:zQm1']", p.expand("$..[?@ == '{dppId}']")
+  end
+
+  test "values in JSONPath string literals are escaped for the literal" do
+    p = DppValidator::Placeholders.new("dppId" => "it's \\ \"q\"\n")
+    assert_equal "$..[?@ == 'it\\'s \\\\ \"q\"\\u000A']", p.expand_json_path("$..[?@ == '{dppId}']")
+    assert_equal "$..[?@ == \"it's \\\\ \\\"q\\\"\\u000A\"]", p.expand_json_path("$..[?@ == \"{dppId}\"]")
+    assert_equal "$..[?@ == 'did:oyd:zQm1']", placeholders.expand_json_path("$..[?@ == '{dppId}']")
+  end
+
+  test "an escaped value is valid RFC 9535 and compared literally" do
+    value = "it's \\ \"q\"\n"
+    p = DppValidator::Placeholders.new("dppId" => value)
+    %w[' "].each do |q|
+      path = p.expand_json_path("$..[?@ == #{q}{dppId}#{q}]")
+      assert_nil DppValidator::JsonPath.problem(path), path
+      assert_equal [value], DppValidator::JsonPath.select(path, { "a" => [value, "other"] }), path
+    end
+  end
+
+  test "escaped quotes in the criterion do not end the literal" do
+    p = placeholders
+    assert_equal "$['a\\'b', 'did:oyd:zQm1']", p.expand_json_path("$['a\\'b', '{dppId}']")
+  end
+
+  test "a placeholder outside a string literal makes the JSONPath unusable" do
+    assert_raises(DppValidator::Placeholders::Unusable) { placeholders.expand_json_path("{elementIdPath}") }
+    assert_raises(DppValidator::Placeholders::Unusable) { placeholders.expand_json_path("$['a'].{dppId}") }
   end
 
   test "only the placeholder names of CRITERIA-FORMAT.md are replaced" do

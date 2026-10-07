@@ -18,13 +18,20 @@ module DppValidator
       @single_object = single_object
     end
 
-    # Placeholders are substituted in path, equals and in; `matches` is a
+    # Placeholders are substituted in `equals` and `in` as they are and in
+    # the JSONPath `path` escaped inside its string literals; a placeholder
+    # outside a string literal makes the assertion unusable. `matches` is a
     # regular expression and stays as written.
     def json_assertions
       Array(@expect["json"]).map do |a|
-        expanded = @placeholders.expand(a.reject { |k, _| k == "matches" })
-        expanded["matches"] = a["matches"] if a.key?("matches")
-        JsonAssertion.new(expanded)
+        expanded = a.dup
+        %w[equals in].each { |k| expanded[k] = @placeholders.expand(a[k]) if a.key?(k) }
+        begin
+          expanded["path"] = @placeholders.expand_json_path(a["path"])
+          JsonAssertion.new(expanded)
+        rescue Placeholders::Unusable => e
+          JsonAssertion.new(expanded, problem: e.message)
+        end
       end
     end
 

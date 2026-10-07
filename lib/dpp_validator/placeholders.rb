@@ -8,8 +8,16 @@ module DppValidator
   # every octet outside the unreserved characters of RFC 3986 (A-Z a-z 0-9
   # - . _ ~) is encoded, so that a value stays one path segment or one query
   # value. Text around the placeholders is left as written in the criterion
-  # (e.g. %24%5B in DPP-API-021). Everywhere else (headers, bodies, expected
-  # values, JSONPath) values are inserted as they are.
+  # (e.g. %24%5B in DPP-API-021).
+  #
+  # In a JSONPath (expand_json_path) a placeholder may stand only inside a
+  # string literal; its value is escaped as RFC 9535 requires for that
+  # literal, so it is compared literally. A placeholder outside a string
+  # literal makes the JSONPath unusable (Unusable).
+  #
+  # Everywhere else (request headers and bodies, `equals` and `in`) values are
+  # inserted as they are. Regular expressions and header assertions are not
+  # substituted at all; that is up to the caller.
   #
   # Only the names above are placeholders; other text in braces, such as the
   # body "{not json" of DPP-API-007, stays unchanged.
@@ -19,6 +27,7 @@ module DppValidator
     UNRESERVED = /[^A-Za-z0-9\-._~]/
 
     class Missing < DppValidator::Error; end
+    class Unusable < DppValidator::Error; end
 
     attr_reader :values
 
@@ -64,6 +73,50 @@ module DppValidator
     # Substitutes in a request path, percent-encoding the values.
     def expand_path(path)
       path.to_s.gsub(PATTERN) { self.class.percent_encode(fetch(Regexp.last_match(1))) }
+    end
+
+    # Substitutes in a JSONPath. Placeholders must stand inside a string
+    # literal ('...' or "..."); their values are escaped for that literal.
+    def expand_json_path(path)
+      text = path.to_s
+      out = +""
+      quote = nil
+      i = 0
+      while i < text.length
+        if (m = PATTERN.match(text, i)) && m.begin(0) == i
+          raise Unusable, "placeholder {#{m[1]}} stands outside a string literal in the JSONPath #{text}" unless quote
+
+          out << self.class.escape_json_path_literal(fetch(m[1]), quote)
+          i = m.end(0)
+          next
+        end
+
+        char = text[i]
+        if quote && char == "\\"
+          out << text[i, 2]
+          i += 2
+          next
+        end
+        if quote
+          quote = nil if char == quote
+        elsif ["'", '"'].include?(char)
+          quote = char
+        end
+        out << char
+        i += 1
+      end
+      out
+    end
+
+    # Escapes a value for an RFC 9535 string literal enclosed in `quote`.
+    def self.escape_json_path_literal(value, quote)
+      value.to_s.each_char.map do |c|
+        if c == "\\" then "\\\\"
+        elsif c == quote then "\\#{c}"
+        elsif c.ord < 0x20 then format("\\u%04X", c.ord)
+        else c
+        end
+      end.join
     end
 
     def self.percent_encode(value)

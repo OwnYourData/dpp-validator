@@ -13,9 +13,12 @@ module DppValidator
   class JsonAssertion
     OPERATIONS = %w[exists equals in matches].freeze
 
-    def initialize(assertion)
+    # problem: a reason found before construction (e.g. a placeholder outside
+    # a string literal of the JSONPath), reported by #problem.
+    def initialize(assertion, problem: nil)
       @assertion = assertion
       @path = assertion["path"].to_s
+      @known_problem = problem
     end
 
     def severity = Messages.severity(@assertion["severity"])
@@ -24,6 +27,8 @@ module DppValidator
     # JSONPath, unusable I-Regexp in match()/search(), unusable ECMA-262
     # pattern in `matches`).
     def problem
+      return @known_problem if @known_problem
+
       reason = JsonPath.problem(@path)
       return reason if reason
       return nil unless @assertion.key?("matches")
