@@ -123,6 +123,14 @@ class HttpCheckTest < ValidatorTestCase
     assert_empty s.received, "no request may be sent for a skipped criterion"
   end
 
+  test "a placeholder outside a string literal of a JSONPath skips the criterion before any request" do
+    s = server { json(200, {}) }
+    outcome = run_check(check(get("/x", { "json" => [{ "path" => "$.a[{dppId}]", "exists" => true }] })), base(s))
+    assert_equal "skipped", outcome.result
+    assert_match(/outside a string literal/, outcome.reason)
+    assert_empty s.received
+  end
+
   test "base_matches is searched in the API base" do
     s = server { json(200, {}) }
     assert_result "passed", run_check(check(get("/x", { "status" => [200] }), base_matches: "/v1/?$"), base(s))
