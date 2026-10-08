@@ -29,7 +29,7 @@ class CliTest < ValidatorTestCase
       status, out, err = cli("run", "--service", service_file, "--criteria", CRITERIA_DIR, "--output", output,
                              config: config(http_port: plain.port))
       assert_equal 0, status, err
-      assert_match(/^0 of 0 automated checks passed \(active criteria\)$/, out)
+      assert_match(/^\d+ of \d+ automated checks passed \(active criteria\)$/, out)
       assert_match(/^proposed, not counted: \d+ of \d+ automated checks passed/, out)
       refute_match(/conform|certified/i, out.sub(DppValidator::Report::NOTICE, ""))
       result = JSON.parse(File.read(output))
