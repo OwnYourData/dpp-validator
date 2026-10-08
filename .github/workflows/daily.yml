@@ -1,0 +1,80 @@
+name: daily
+
+# Runs the criteria of the pinned dpp-criteria commit (DPP_CRITERIA_REF) against
+# every listed service, keeps the JSON results on the branch "results"
+# (runs/<date>/ and latest/) and publishes the result pages on GitHub Pages.
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build the image with the pinned dpp-criteria commit
+        run: ./build.sh
+
+      - name: Test suite
+        run: docker run --rm oydeu/dpp-validator:latest test
+
+      - name: Run all listed services
+        run: |
+          mkdir -p out
+          for id in $(docker run --rm oydeu/dpp-validator:latest services); do
+            docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest run --service "$id" --output "out/$id.json"
+          done
+          ls -l out
+
+      - name: Keep the results on the branch results
+        run: |
+          date=$(date -u +%F)
+          if git ls-remote --exit-code --heads origin results >/dev/null; then
+            git fetch origin results
+            git worktree add history origin/results
+            git -C history switch -C results
+          else
+            git worktree add --orphan -b results history
+          fi
+          mkdir -p "history/runs/$date" history/latest
+          cp out/*.json "history/runs/$date/"
+          cp out/*.json history/latest/
+          cd history
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "Results of $date" || echo "no changes"
+          git push origin results
+
+      - name: Build the result pages
+        run: |
+          mkdir -p site
+          docker run --rm -v "$PWD/history:/app/history" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest \
+            site --results history/latest --output site
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: run
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

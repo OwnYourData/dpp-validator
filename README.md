@@ -11,14 +11,18 @@ Passport criteria (a published passport behind a product identifier) are
 checked by [dpplint](https://github.com/OwnYourData/dpplint); this repository
 covers the behaviour of the DPP service and its API.
 
-## Status: phase 1
+## Status
 
 - Check types `tls` and `http` for all criteria with `target: service` and
   `method: automated`.
 - `automated-auth` and `self-declared` criteria are listed as `skipped` with
   the reason; passport criteria are listed under `not_run`.
-- Not yet: daily runs with GitHub Actions, GitHub Pages, history over several
-  days (`history`, DPP-ID-002), passport criteria through dpplint.
+- Daily run with GitHub Actions ([`.github/workflows/daily.yml`](.github/workflows/daily.yml),
+  also started by hand): every listed service is checked, the JSON results are
+  kept on the branch `results` (`runs/<date>/`, `latest/`) and the result pages
+  are published on GitHub Pages.
+- Not yet: rating over several days (`history`, DPP-ID-002), passport criteria
+  through dpplint.
 
 ## How it works
 
@@ -46,6 +50,10 @@ counted. Criteria with `status: proposed` are reported separately as
 docker run --rm oydeu/dpp-validator:latest test
 docker run --rm -v "$PWD/results:/app/results" oydeu/dpp-validator:latest run --service ownyourdata-dpp-service
 ```
+
+`docker run --rm -v "$PWD/results:/app/results" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest site --results results --output site`
+writes the result pages (`site/index.html`) from the JSON results, as the
+daily workflow does.
 
 `./build.sh <ref>` builds with another dpp-criteria commit, branch or tag
 (resolved to its commit). The JSON result is written to
