@@ -62,15 +62,19 @@ class RunnerTest < ValidatorTestCase
   end
 
   test "only active criteria count in N of M; proposed ones are reported separately" do
-    report = run_with(DppValidator::CriteriaRepository.new(CRITERIA_DIR))
-    assert report.results.all? { |r| r["status"] == "proposed" }, "dpp-criteria 4b17bb8 has only proposed criteria"
-    assert_equal "0 of 0 automated checks passed", report.summary["text"]
-    passed = report.results.count { |r| %w[passed warning].include?(r["result"]) }
-    counted = report.results.count { |r| %w[passed warning failed].include?(r["result"]) }
-    assert_equal "#{passed} of #{counted} automated checks passed", report.proposed_summary["text"]
-    refute report.results.any? { |r| r["counted"] }
-
     copy_of_checkout do |dir|
+      Dir[File.join(dir, "criteria", "*", "*.yaml")].each do |file|
+        data = YAML.safe_load(File.read(file))
+        data["status"] = "proposed"
+        File.write(file, YAML.dump(data))
+      end
+      report = run_with(DppValidator::CriteriaRepository.new(dir))
+      assert_equal "0 of 0 automated checks passed", report.summary["text"]
+      passed = report.results.count { |r| %w[passed warning].include?(r["result"]) }
+      counted = report.results.count { |r| %w[passed warning failed].include?(r["result"]) }
+      assert_equal "#{passed} of #{counted} automated checks passed", report.proposed_summary["text"]
+      refute report.results.any? { |r| r["counted"] }
+
       edit(dir, "DPP-DEX-004") { |d| d["status"] = "active" }
       edit(dir, "DPP-API-013") { |d| d["status"] = "active"; d["check"]["steps"][0]["expect"]["status"] = [201] }
       report = run_with(DppValidator::CriteriaRepository.new(dir))
