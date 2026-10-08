@@ -1,5 +1,5 @@
 # Copied from github.com/OwnYourData/dpplint, test/services/i_regexp_test.rb,
-# commit 99dc54f5b129f91ee0e8bf6a61ff381a19fed8c2. Only the test_helper require and the base class
+# commit aeb06c1ebf55ef990ab7d6e1ff529ebec08e0a76. Only the test_helper require and the base class
 # (ActiveSupport::TestCase -> DpplintTestCase, same test DSL) are adapted.
 
 require_relative "../test_helper"
@@ -26,10 +26,17 @@ class IRegexpTest < DpplintTestCase
   end
 
   test "^ or $ outside a character class makes the pattern unusable (dpp-criteria 4b17bb8)" do
-    ["^ab.*", ".*bc$", "^[Bb]atter", "59040|PCDS$", "(^a)", "a\\^b"].each do |pattern|
-      assert_match(/\Acontains (\^|\$|\\\^) outside a character class/, IRegexp.problem(pattern), pattern)
+    ["^ab.*", ".*bc$", "^[Bb]atter", "59040|PCDS$", "(^a)"].each do |pattern|
+      assert_match(/\Acontains (\^|\$) outside a character class/, IRegexp.problem(pattern), pattern)
       refute IRegexp.search?(pattern, pattern.delete("^$\\")), pattern
     end
+  end
+
+  test "an escaped \\^ is a literal ^, an escaped \\$ is not I-Regexp (dpp-criteria issue #7)" do
+    assert_nil IRegexp.problem("a\\^b")
+    assert IRegexp.match?("a\\^b", "a^b")
+    refute IRegexp.search?("a\\^b", "ab")
+    assert_match(/not an I-Regexp escape/, IRegexp.problem("a\\$"))
   end
 
   test "^ and $ inside a character class are allowed" do

@@ -1,5 +1,5 @@
 # Copied from github.com/OwnYourData/dpplint, app/services/i_regexp.rb,
-# commit 99dc54f5b129f91ee0e8bf6a61ff381a19fed8c2 (dpplint main, 2026-09-28). Unchanged below this
+# commit aeb06c1ebf55ef990ab7d6e1ff529ebec08e0a76 (dpplint main, 2026-10-08). Unchanged below this
 # header; change it in dpplint first and copy it again.
 
 # I-Regexp (RFC 9485), the regular expressions of the JSONPath functions
@@ -11,7 +11,8 @@
 # outside a character class (RFC 9485 lists them as ordinary characters, its
 # mappings in section 5 and the JSONPath Compliance Test Suite treat them as
 # anchors): such a pattern is unusable (Anchored), like an invalid one
-# (Invalid); `\^` counts as well. Differences to Ruby and ECMA-262 that
+# (Invalid). An escaped `\^` is a literal ^ (dpp-criteria issue #7); `\$` is
+# not valid I-Regexp (use `[$]`). Differences to Ruby and ECMA-262 that
 # matter: `.` matches any character except LF and CR; only the escapes \( \) \*
 # \+ \- \. \? \[ \\ \] \n \r \t \{ \| \} and the category escapes \p{..} and \P{..} exist (no \d,
 # \w, \s); there are no lazy quantifiers, no {,m} and no non-capturing or other
@@ -159,7 +160,6 @@ class IRegexp
 
     c = take
     return category(c) if %w[p P].include?(c)
-    raise Anchored, "\\^" if c == "^"
 
     char(single_escape(c))
   end
