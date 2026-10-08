@@ -4,16 +4,20 @@ require "fileutils"
 module DppValidator
   # dpp-validator run --service <id or file> [--criteria DIR] [--output FILE]
   # dpp-validator services [--criteria DIR]
+  # dpp-validator site --results DIR --output DIR
   # dpp-validator version
   class Cli
     USAGE = <<~TEXT.freeze
       Usage:
         dpp-validator run --service <id|file> [--criteria DIR] [--output FILE|-]
         dpp-validator services [--criteria DIR]
+        dpp-validator site --results DIR --output DIR
         dpp-validator version
 
       --criteria  dpp-criteria checkout (default: $DPP_CRITERIA_DIR or /opt/dpp-criteria)
-      --output    JSON result file (default: results/<service id>.json; "-" for stdout)
+      --output    run: JSON result file (default: results/<service id>.json; "-" for stdout)
+                  site: directory for index.html and results/<service id>.json
+      --results   site: directory with the JSON results to publish
     TEXT
 
     def initialize(argv, out: $stdout, err: $stderr, config: Config.new)
@@ -31,6 +35,7 @@ module DppValidator
       case command
       when "run" then run(options)
       when "services" then services(options)
+      when "site" then site(options)
       when "version" then version(options)
       else
         @err.puts USAGE
@@ -49,6 +54,7 @@ module DppValidator
         o.on("--service VALUE") { |v| options[:service] = v }
         o.on("--criteria DIR") { |v| options[:criteria] = v }
         o.on("--output FILE") { |v| options[:output] = v }
+        o.on("--results DIR") { |v| options[:results] = v }
       end.parse!(@argv)
       options
     end
@@ -68,6 +74,14 @@ module DppValidator
         @out.puts report.to_text
         @out.puts "JSON result: #{output}"
       end
+      0
+    end
+
+    def site(options)
+      raise DppValidator::Error, "--results and --output are required" unless options[:results] && options[:output]
+
+      count = Site.new(results_dir: options[:results], output_dir: options[:output]).build
+      @out.puts "#{count} service(s) written to #{File.join(options[:output], 'index.html')}"
       0
     end
 

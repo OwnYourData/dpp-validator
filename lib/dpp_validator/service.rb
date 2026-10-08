@@ -15,7 +15,8 @@ module DppValidator
     def credentials = data["credentials"] || "none"
 
     def to_h
-      { "id" => id, "name" => name, "operator" => data.dig("operator", "name"), "api_base" => api_base, "features" => features }
+      { "id" => id, "name" => name, "operator" => data.dig("operator", "name"), "operator_url" => data.dig("operator", "url"),
+        "contact" => data["contact"], "api_base" => api_base, "features" => features, "listed_since" => data["listed_since"].to_s }
     end
   end
 end
