@@ -149,6 +149,19 @@ class HttpCheckTest < ValidatorTestCase
     assert_equal ["warning: step 1 (GET /warn): HTTP status 400 is listed in warn_if_status"], messages_text(outcome)
   end
 
+  test "skip_if_status after a failed step fails the criterion; after passed or warned steps it skips" do
+    s = server { |r| r.path.end_with?("/ok") ? json(200, {}) : json(r.path.end_with?("/bad") ? 500 : 401, {}) }
+    later = get("/date", { "status" => [200] }, skip_if_status: [401])
+    outcome = run_check(check(get("/bad", { "status" => [200] }), later, get("/never", { "status" => [200] })), base(s))
+    assert_result "failed", outcome
+    assert_equal ["error: step 1 (GET /bad): HTTP status is 500, expected 200"], messages_text(outcome)
+    assert_match(/listed in skip_if_status; an earlier step failed/, outcome.details.join("\n"))
+    refute_includes s.received.map(&:path), "/dpp/v1/never"
+    outcome = run_check(check(get("/ok", { "status" => [200], "json" => [{ "path" => "$.x", "exists" => true, "severity" => "warning" }] }), later), base(s))
+    assert_result "skipped", outcome
+    assert_match(/401 is listed in skip_if_status/, outcome.reason)
+  end
+
   test "severity warning on a step turns its failures into warnings; error is the default" do
     s = server { json(500, {}) }
     assert_result "warning", run_check(check(get("/x", { "status" => [200] }, severity: "warning")), base(s))

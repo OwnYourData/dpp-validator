@@ -12,7 +12,8 @@ module DppValidator
     # runner's default negotiation (HTTP/2 or HTTP/1.1 via ALPN), certificate
     # verification on, no redirects followed. Per step:
     #
-    # - status in `skip_if_status` -> the criterion is skipped;
+    # - status in `skip_if_status` -> the criterion is skipped, unless an
+    #   earlier step has failed: then it fails; later steps are not sent;
     # - status in `warn_if_status` -> a warning, `expect` is not evaluated;
     # - otherwise `expect` (Expectation);
     # - `severity: warning` on the step turns its failures into warnings.
@@ -47,7 +48,12 @@ module DppValidator
 
           step_messages = evaluate(step, response, responses[0...index])
           if step_messages == :skip
-            return Outcome.skipped("#{label}: HTTP status #{response.status} is listed in skip_if_status", details: details)
+            skip_text = "#{label}: HTTP status #{response.status} is listed in skip_if_status"
+            return Outcome.skipped(skip_text, details: details) if messages.none? { |m| m[:severity] == "error" }
+
+            # An earlier step has failed: that failure stands (CRITERIA-FORMAT.md,
+            # "Requests and steps"); the remaining steps are not sent.
+            return Outcome.from(messages, details: details + ["#{skip_text}; an earlier step failed, so the criterion fails"])
           end
 
           step_messages = Messages.downgrade(step_messages) if step["severity"] == "warning"
