@@ -11,9 +11,11 @@ module DppValidator
     #   2xx or a redirect to a non-https URL.
     # - min_version: a handshake that also offers older versions (security
     #   level 0) must negotiate at least this version.
-    # - reject_versions: a handshake forced to each version must fail. A
-    #   version this runner cannot offer (Transport::TlsVersions.offer_problem) is not
-    #   tested.
+    # - reject_versions: a handshake forced to each version must fail. SSL 3.0
+    #   is tested with a ClientHello of our own (Transport::Ssl3Probe), since
+    #   OpenSSL 3 cannot offer it; it is accepted only if the server answers
+    #   with an SSL 3.0 ServerHello. Any other version this runner cannot offer
+    #   (Transport::TlsVersions.offer_problem) is not tested.
     # - recommend_versions: a handshake forced to each version should
     #   succeed; otherwise a warning.
     # - http_versions: GET {base}/dpps/{dppId}. First a reference request with
@@ -118,6 +120,8 @@ module DppValidator
       end
 
       def reject_tls(version)
+        return reject_ssl3 if version == "ssl3"
+
         if (reason = Transport::TlsVersions.offer_problem(version))
           return Part.new(:untested, "#{Transport::TlsVersions.name(version)} not tested: #{reason}")
         end
@@ -126,6 +130,14 @@ module DppValidator
         return Part.new(:fail, "#{Transport::TlsVersions.name(version)} accepted") if hs.ok?
 
         Part.new(:ok, "#{Transport::TlsVersions.name(version)} refused (#{hs.error})")
+      end
+
+      def reject_ssl3
+        hs = @client.ssl3_hello(@base)
+        return Part.new(:untested, "SSL 3.0 not tested: #{hs.error}") if Transport::UNREACHABLE.include?(hs.error_kind)
+        return Part.new(:fail, "SSL 3.0 accepted (an SSL 3.0 ClientHello was answered with an SSL 3.0 ServerHello)") if hs.ok?
+
+        Part.new(:ok, "SSL 3.0 refused (#{hs.error})")
       end
 
       def recommend_tls(version)
