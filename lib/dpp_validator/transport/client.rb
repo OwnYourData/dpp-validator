@@ -75,6 +75,24 @@ module DppValidator
         end
       end
 
+      # SSL 3.0 test with a ClientHello of our own (Ssl3Probe). ok? means the
+      # server accepted SSL 3.0; otherwise `error` says how it refused, or why
+      # no TCP connection could be opened (error_kind of the connect failure).
+      def ssl3_hello(url)
+        uri = URI.parse(url)
+        tcp = connect(uri.hostname, uri.port)
+        return Handshake.new(error: tcp.error, error_kind: tcp.error_kind) if tcp.is_a?(Response)
+
+        begin
+          result = Ssl3Probe.run(tcp, IoDeadline.deadline(@config.connect_timeout))
+          return Handshake.new(version: "ssl3") if result.accepted?
+
+          Handshake.new(error: result.text, error_kind: :tls)
+        ensure
+          tcp.close unless tcp.closed?
+        end
+      end
+
       # Response failure if no TCP connection can be opened, otherwise nil.
       def reachable(url)
         uri = URI.parse(url)

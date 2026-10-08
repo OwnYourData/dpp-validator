@@ -111,19 +111,16 @@ class TlsCheckTest < ValidatorTestCase
     assert_equal ["error: TLS 1.0 accepted", "error: TLS 1.1 accepted"], messages_text(outcome)
   end
 
-  test "reject_versions: a version this runner cannot offer makes the criterion skipped, never passed" do
-    outcome = run_check({ "type" => "tls", "reject_versions" => %w[ssl3 1.0 1.1] }, base(server(tls: %w[1.2 1.3])))
-    if VERSIONS.offerable?("ssl3")
-      assert_result "passed", outcome
-    else
-      assert_result "skipped", outcome
-      assert_match(/SSL 3\.0 not tested: the OpenSSL of this runner .* cannot offer SSL 3\.0/, outcome.reason)
-    end
+  test "reject_versions: SSL 3.0 is tested with a ClientHello of our own and refused by OpenSSL 3" do
+    outcome = run_check({ "type" => "tls", "reject_versions" => %w[ssl3] }, base(server(tls: %w[1.2 1.3])))
+    assert_result "passed", outcome
+    assert_match(/SSL 3\.0 refused \(/, outcome.details.join("\n"))
   end
 
   test "a failed part beats a part that could not be tested" do
     skip "this OpenSSL cannot offer TLS 1.0" unless VERSIONS.offerable?("1.0")
-    outcome = run_check({ "type" => "tls", "reject_versions" => %w[ssl3 1.0] }, base(server(tls: %w[1.0 1.3])))
+    check = { "type" => "tls", "reject_versions" => %w[1.0], "http_versions" => { "require" => ["3"] } }
+    outcome = run_check(check, base(server(tls: %w[1.0 1.3]) { json(200, {}) }))
     assert_result "failed", outcome
   end
 

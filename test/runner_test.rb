@@ -50,7 +50,6 @@ class RunnerTest < ValidatorTestCase
     by_id = results(report)
     assert_equal SERVICE_CRITERIA, by_id.keys
     expected_skips = { "DPP-API-016" => /automated-auth/, "DPP-OPS-006" => /self-declared/ }
-    expected_skips["DPP-DEX-003"] = /SSL 3\.0 not tested/ unless DppValidator::Transport::TlsVersions.offerable?("ssl3")
     by_id.each do |id, r|
       if expected_skips[id]
         assert_equal "skipped", r["result"], id
