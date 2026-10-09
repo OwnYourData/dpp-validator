@@ -37,7 +37,8 @@ class CliTest < ValidatorTestCase
       assert_match(/\A\h{40}(-dirty)?\z|\Aunknown\z/, result["dpp_criteria"]["commit"])
       assert_equal "local-test", result["service"]["id"]
       entry = result["criteria"].find { |c| c["id"] == "DPP-API-013" }
-      assert_equal %w[id version status title level target method check_type result messages details counted], entry.keys
+      assert_equal %w[id version status title level target method check_type result messages details counted], entry.keys - ["description_url"]
+      assert_match(%r{/criteria/README\.md#dpp-api-013\z}, entry["description_url"]) if entry.key?("description_url")
     end
   end
 

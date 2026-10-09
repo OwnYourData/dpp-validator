@@ -39,9 +39,10 @@ module DppValidator
       check = criterion["check"] || {}
       head = {
         "id" => criterion.id, "version" => criterion["version"], "status" => criterion["status"],
-        "title" => criterion["title"], "level" => criterion["level"], "target" => criterion["target"],
+        "title" => criterion["title"], "description_url" => @repository.description_url(criterion.id),
+        "level" => criterion["level"], "target" => criterion["target"],
         "method" => criterion["method"], "check_type" => check["type"]
-      }
+      }.compact
       outcome = decide(criterion, check, context)
       head.merge(
         "result" => outcome.result,

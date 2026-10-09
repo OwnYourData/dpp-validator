@@ -61,6 +61,18 @@ class RunnerTest < ValidatorTestCase
     assert report.not_run.any? { |n| n["id"] == "DPP-DAT-014" }
   end
 
+  test "results link to the description in criteria/README.md of the commit, if the checkout has one" do
+    copy_of_checkout do |dir|
+      File.write(File.join(dir, "COMMIT"), "#{'a' * 40}\n")
+      FileUtils.rm_f(File.join(dir, "criteria", "README.md"))
+      refute results(run_with(DppValidator::CriteriaRepository.new(dir)))["DPP-API-013"].key?("description_url")
+
+      File.write(File.join(dir, "criteria", "README.md"), "# DPP criteria catalogue\n")
+      assert_equal "https://github.com/OwnYourData/dpp-criteria/blob/#{'a' * 40}/criteria/README.md#dpp-api-013",
+                   results(run_with(DppValidator::CriteriaRepository.new(dir)))["DPP-API-013"]["description_url"]
+    end
+  end
+
   test "only active criteria count in N of M; proposed ones are reported separately" do
     copy_of_checkout do |dir|
       Dir[File.join(dir, "criteria", "*", "*.yaml")].each do |file|

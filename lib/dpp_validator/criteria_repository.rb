@@ -42,6 +42,16 @@ module DppValidator
       end
     end
 
+    # Link to the readable description of a criterion in criteria/README.md of
+    # this commit (anchor: the ID in lower case). nil if the checkout has no
+    # such page or its commit cannot be linked (unknown, local changes).
+    def description_url(id)
+      return nil unless File.file?(File.join(@dir, "criteria", "README.md"))
+      return nil unless commit.match?(/\A\h{7,40}\z/)
+
+      "https://github.com/OwnYourData/dpp-criteria/blob/#{commit}/criteria/README.md##{id.to_s.downcase}"
+    end
+
     def criteria
       @criteria ||= Dir[File.join(@dir, "criteria", "**", "*.yaml")].sort.map do |file|
         data = load_yaml(file)
