@@ -119,6 +119,7 @@ class HttpCheckTest < ValidatorTestCase
       outcome = run_check(c, base(s))
       assert_equal "skipped", outcome.result, name
       assert_match(/regular expression/, outcome.reason, name)
+      assert_equal "not_evaluated", outcome.reason_code, name
     end
     assert_empty s.received, "no request may be sent for a skipped criterion"
   end
@@ -144,6 +145,7 @@ class HttpCheckTest < ValidatorTestCase
     outcome = run_check(check(get("/skip", { "status" => [200] }, skip_if_status: [401, 403])), base(s))
     assert_result "skipped", outcome
     assert_match(/401 is listed in skip_if_status/, outcome.reason)
+    assert_equal "not_applicable", outcome.reason_code
     outcome = run_check(check(get("/warn", { "status" => [200], "json" => [{ "path" => "$.x", "exists" => true }] }, warn_if_status: [400])), base(s))
     assert_result "warning", outcome
     assert_equal ["warning: step 1 (GET /warn): HTTP status 400 is listed in warn_if_status"], messages_text(outcome)
@@ -207,8 +209,11 @@ class HttpCheckTest < ValidatorTestCase
     outcome = run_check(check(get("/dpps/{dppId}/elements/{elementIdPath}", { "status" => [200] })), base(s), test_data: { "elementIdPath" => nil })
     assert_result "skipped", outcome
     assert_match(/no value for \{elementIdPath\}/, outcome.reason)
+    assert_equal "not_evaluated", outcome.reason_code
     token = { "request" => { "method" => "PATCH", "path" => "/dpps/{dppId}", "auth" => "token" }, "expect" => { "status" => [200] } }
-    assert_match(/credentials/, run_check(check(token), base(s)).reason)
+    outcome = run_check(check(token), base(s))
+    assert_match(/credentials/, outcome.reason)
+    assert_equal "needs_credentials", outcome.reason_code
     assert_empty s.received
   end
 
@@ -219,6 +224,7 @@ class HttpCheckTest < ValidatorTestCase
     outcome = run_check(check(get("/x", { "status" => [200] })), "https://127.0.0.1:#{port}/dpp/v1")
     assert_result "skipped", outcome
     assert_match(/not reachable/, outcome.reason)
+    assert_equal "unreachable", outcome.reason_code
     s = server(cert: :self_signed) { json(200, {}) }
     outcome = run_check(check(get("/x", { "status" => [200] })), base(s))
     assert_result "failed", outcome

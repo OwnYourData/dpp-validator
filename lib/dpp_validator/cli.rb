@@ -2,14 +2,14 @@ require "optparse"
 require "fileutils"
 
 module DppValidator
-  # dpp-validator run --service <id or file> [--criteria DIR] [--output FILE]
+  # dpp-validator run --service <id or file> [--criteria DIR] [--output FILE] [--read-only]
   # dpp-validator services [--criteria DIR]
   # dpp-validator site --results DIR --output DIR
   # dpp-validator version
   class Cli
     USAGE = <<~TEXT.freeze
       Usage:
-        dpp-validator run --service <id|file> [--criteria DIR] [--output FILE|-]
+        dpp-validator run --service <id|file> [--criteria DIR] [--output FILE|-] [--read-only]
         dpp-validator services [--criteria DIR]
         dpp-validator site --results DIR --output DIR
         dpp-validator version
@@ -18,6 +18,9 @@ module DppValidator
       --output    run: JSON result file (default: results/<service id>.json; "-" for stdout)
                   site: directory for index.html and results/<service id>.json
       --results   site: directory with the JSON results to publish
+      --read-only run: send only GET, HEAD and OPTIONS; criteria with other
+                  methods are skipped (reason_code not_sent). For a check
+                  before listing; listed services are always run in full.
     TEXT
 
     def initialize(argv, out: $stdout, err: $stderr, config: Config.new)
@@ -55,6 +58,7 @@ module DppValidator
         o.on("--criteria DIR") { |v| options[:criteria] = v }
         o.on("--output FILE") { |v| options[:output] = v }
         o.on("--results DIR") { |v| options[:results] = v }
+        o.on("--read-only") { options[:read_only] = true }
       end.parse!(@argv)
       options
     end
@@ -62,6 +66,7 @@ module DppValidator
     def run(options)
       raise DppValidator::Error, "--service is required" unless options[:service]
 
+      @config.read_only = true if options[:read_only]
       repository = CriteriaRepository.new(options[:criteria])
       service = repository.service(options[:service])
       report = Runner.new(repository: repository, service: service, config: @config).run

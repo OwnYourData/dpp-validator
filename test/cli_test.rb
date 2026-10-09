@@ -33,12 +33,38 @@ class CliTest < ValidatorTestCase
       assert_match(/^proposed, not counted: \d+ of \d+ automated checks passed/, out)
       refute_match(/conform|certified/i, out.sub(DppValidator::Report::NOTICE, ""))
       result = JSON.parse(File.read(output))
-      assert_equal %w[validator notice service run_at dpp_criteria summary criteria not_run], result.keys
+      assert_equal %w[validator notice service run_at mode dpp_criteria summary criteria not_run], result.keys
+      assert_equal "full", result["mode"]
       assert_match(/\A\h{40}(-dirty)?\z|\Aunknown\z/, result["dpp_criteria"]["commit"])
       assert_equal "local-test", result["service"]["id"]
       entry = result["criteria"].find { |c| c["id"] == "DPP-API-013" }
       assert_equal %w[id version status title level target method check_type result messages details counted], entry.keys - ["description_url"]
       assert_match(%r{/criteria/README\.md#dpp-api-013\z}, entry["description_url"]) if entry.key?("description_url")
+    end
+  end
+
+  test "run --read-only sends only GET, HEAD and OPTIONS and says so" do
+    skip "no dpp-criteria checkout at #{CRITERIA_DIR}" unless File.directory?(File.join(CRITERIA_DIR, "criteria"))
+    tls = server(protocols: %w[h2], &FakeDppService.handler(DPP_ID, PRODUCT_ID))
+    plain = plain_server { [301, { "Location" => "https://localhost/" }, ""] }
+    Dir.mktmpdir do |dir|
+      service_file = File.join(dir, "unlisted.yaml")
+      File.write(service_file, YAML.dump(
+        "id" => "unlisted-test", "name" => "Unlisted test", "operator" => { "name" => "Test" }, "contact" => "test@example.org",
+        "api_base" => tls.url("/dpp/v1"), "features" => %w[fine-granular-api], "not_implemented" => %w[write-api historical-versions],
+        "test_data" => { "productId" => PRODUCT_ID, "dppId" => DPP_ID, "elementIdPath" => "$.ProductIdentification.ModelIdentifier" },
+        "credentials" => "none", "listed_since" => "2026-10-09"
+      ))
+      output = File.join(dir, "result.json")
+      status, out, err = cli("run", "--service", service_file, "--criteria", CRITERIA_DIR, "--output", output, "--read-only",
+                             config: config(http_port: plain.port))
+      assert_equal 0, status, err
+      assert_match(/^read-only run: only GET, HEAD and OPTIONS requests were sent$/, out)
+      assert_match(/skipped \(not_sent\): read-only run/, out)
+      result = JSON.parse(File.read(output))
+      assert_equal "read-only", result["mode"]
+      assert_equal %w[GET], tls.received.map(&:method).uniq
+      assert_equal "not_implemented", result["criteria"].find { |c| c["id"] == "DPP-API-019" }["reason_code"]
     end
   end
 
