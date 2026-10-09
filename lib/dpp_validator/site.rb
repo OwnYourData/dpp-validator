@@ -118,9 +118,10 @@ module DppValidator
         notes = Array(c["messages"]).map { |m| "<li>#{h(m['severity'])}: #{h(m['message'])}</li>" }
         notes << "<li>#{h(c['reason'])}</li>" if c["reason"]
         marker = c["status"] == "active" ? "" : %( <span class="muted">(#{h(c['status'])}, not counted)</span>)
-        link = "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{c['id'].to_s.split('-')[1].to_s.downcase}/#{c['id']}.yaml"
+        link = c["description_url"] ||
+               "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{c['id'].to_s.split('-')[1].to_s.downcase}/#{c['id']}.yaml"
         <<~HTML.chomp
-          <tr><td class="id"><a href="#{h(link)}">#{h(c['id'])}</a> v#{h(c['version'])}</td>
+          <tr><td class="id"><a href="#{h(link)}" title="Description of the criterion">#{h(c['id'])}</a> v#{h(c['version'])}</td>
           <td>#{h(c['title'])}#{marker}#{notes.empty? ? '' : %(<ul class="msg">#{notes.join}</ul>)}</td>
           <td>#{h(c['level'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span></td></tr>
         HTML

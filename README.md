@@ -84,7 +84,8 @@ checks are meaningless behind a proxy that terminates TLS.
     "proposed_not_counted": { "text": "...", "passed": 0, "failed": 0, "warnings": 0, "skipped": 0 }
   },
   "criteria": [
-    { "id": "DPP-API-013", "version": 1, "status": "proposed", "title": "...", "level": "MUST",
+    { "id": "DPP-API-013", "version": 1, "status": "proposed", "title": "...",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/<commit>/criteria/README.md#dpp-api-013", "level": "MUST",
       "target": "service", "method": "automated", "check_type": "http", "result": "passed",
       "messages": [], "details": ["step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"], "counted": false }
   ],
@@ -94,6 +95,9 @@ checks are meaningless behind a proxy that terminates TLS.
 
 `messages` holds failures and warnings (`severity` `error` or `warning`),
 `reason` the reason for `skipped`, `details` what the runner observed.
+`description_url` links to the readable description of the criterion in
+`criteria/README.md` of the dpp-criteria commit used; it is absent if that
+commit has no such page.
 
 ## Layout
 

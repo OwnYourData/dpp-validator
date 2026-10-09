@@ -26,7 +26,8 @@ class SiteTest < ValidatorTestCase
       FileUtils.mkdir_p(results)
       File.write(File.join(results, "a.json"), JSON.generate(result("svc-a", "Service <A>", [
         criterion("DPP-DEX-006", "active", "failed", messages: [{ "severity" => "error", "message" => "HTTP/1.1 not rejected" }]),
-        criterion("DPP-API-013", "active", "passed"),
+        criterion("DPP-API-013", "active", "passed",
+                  description_url: "https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013"),
         criterion("DPP-OPS-006", "proposed", "skipped", reason: "self-declared")
       ])))
       File.write(File.join(results, "b.json"), JSON.generate(result("svc-b", "Service B", [criterion("DPP-API-013", "active", "passed")])))
@@ -43,6 +44,7 @@ class SiteTest < ValidatorTestCase
       assert_includes html, "error: HTTP/1.1 not rejected"
       assert_includes html, "mailto:office@op.example"
       assert_includes html, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/dex/DPP-DEX-006.yaml"
+      assert_includes html, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013")
       assert_includes html, DppValidator::Report::NOTICE
       refute_match(/conformant|certified/i, html.sub(DppValidator::Report::NOTICE, ""))
       refute_match(%r{<(script|link)\b|src="http}i, html, "no external resources")
