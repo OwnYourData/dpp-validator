@@ -12,6 +12,11 @@ module DppValidator
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
     ORDER = { "failed" => 0, "warning" => 1, "passed" => 2, "skipped" => 3 }.freeze
+    REASON_LABELS = {
+      "not_applicable" => "not applicable", "not_implemented" => "not implemented", "no_evidence" => "no evidence",
+      "needs_credentials" => "needs credentials", "not_sent" => "not sent (read-only run)",
+      "unreachable" => "unreachable", "not_evaluated" => "not evaluated"
+    }.freeze
 
     def initialize(results_dir:, output_dir:)
       @results_dir = results_dir
@@ -34,6 +39,16 @@ module DppValidator
     private
 
     def h(text) = CGI.escapeHTML(text.to_s)
+
+    def reason_label(code) = REASON_LABELS.fetch(code.to_s, code.to_s)
+
+    # "3 skipped: 2 not applicable, 1 needs credentials"; older results
+    # without skipped_by_reason give "3 skipped".
+    def skipped_text(summary)
+      text = "#{summary['skipped'].to_i} skipped"
+      by_reason = summary["skipped_by_reason"] || {}
+      by_reason.empty? ? text : "#{text}: #{by_reason.map { |code, n| "#{n} #{reason_label(code)}" }.join(', ')}"
+    end
 
     def page(results)
       <<~HTML
@@ -102,7 +117,7 @@ module DppValidator
           <dt>Run</dt><dd>#{h(r['run_at'])} &middot; dpp-criteria <a href="#{CRITERIA_REPO}/tree/#{h(commit)}">#{h(commit[0, 7])}</a> &middot; <a href="results/#{h(s['id'])}.json">JSON</a></dd>
         </dl>
         <div class="summary"><strong>#{h(summary['text'])}</strong>
-          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(summary['skipped'])} not applicable or not checked)
+          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(skipped_text(summary))})#{r['mode'] == 'read-only' ? ' &middot; read-only run' : ''}
           <div class="notice">Proposed criteria, not counted: #{h(proposed['text'])}</div></div>
         <div class="scroll"><table>
         <thead><tr><th>Criterion</th><th>Requirement and findings</th><th>Level</th><th>Result</th></tr></thead>
@@ -123,7 +138,7 @@ module DppValidator
         <<~HTML.chomp
           <tr><td class="id"><a href="#{h(link)}" title="Description of the criterion">#{h(c['id'])}</a> v#{h(c['version'])}</td>
           <td>#{h(c['title'])}#{marker}#{notes.empty? ? '' : %(<ul class="msg">#{notes.join}</ul>)}</td>
-          <td>#{h(c['level'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span></td></tr>
+          <td>#{h(c['level'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{c['reason_code'] ? %(<br><span class="muted">#{h(reason_label(c['reason_code']))}</span>) : ''}</td></tr>
         HTML
       end.join("\n")
     end

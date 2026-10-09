@@ -70,6 +70,7 @@ class TlsCheckTest < ValidatorTestCase
     outcome = run_check(REJECT_OLD_HTTP, base(s))
     assert_result "skipped", outcome
     assert_match(/reference request .* gave HTTP 404 over HTTP\/2, not 2xx or 3xx/, outcome.reason)
+    assert_equal "not_evaluated", outcome.reason_code
     s = server(protocols: %w[h2 http/1.1]) { :hang }
     assert_result "skipped", run_check(REJECT_OLD_HTTP, base(s))
   end
@@ -176,5 +177,6 @@ class TlsCheckTest < ValidatorTestCase
     outcome = run_check(REJECT_OLD_HTTP, "https://127.0.0.1:#{port}/dpp/v1")
     assert_result "skipped", outcome
     assert_match(/service not reachable/, outcome.reason)
+    assert_equal "unreachable", outcome.reason_code
   end
 end

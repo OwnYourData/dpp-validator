@@ -31,7 +31,14 @@ module DppValidator
         @config = config
       end
 
+      # In a read-only run (Config#read_only) any method other than GET, HEAD
+      # and OPTIONS raises before a connection is opened. The runner skips such
+      # criteria beforehand; this is the safety net.
       def request(url, method: "GET", headers: {}, body: nil, http_version: :default, tls_version: nil, verify: true)
+        if @config.read_only && !Checks::SAFE_METHODS.include?(method.to_s.upcase)
+          raise DppValidator::Error, "read-only run: #{method} #{url} not sent"
+        end
+
         uri = URI.parse(url)
         headers = merge_headers(headers)
         deadline = IoDeadline.deadline(@config.read_timeout)

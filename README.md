@@ -16,7 +16,13 @@ covers the behaviour of the DPP service and its API.
 - Check types `tls` and `http` for all criteria with `target: service` and
   `method: automated`.
 - `automated-auth` and `self-declared` criteria are listed as `skipped` with
-  the reason; passport criteria are listed under `not_run`.
+  the reason and a `reason_code`; passport criteria are listed under `not_run`.
+- Features a service lists under `not_implemented` give `skipped` with
+  `reason_code: not_implemented`; features it does not declare at all give
+  `not_applicable`.
+- `--read-only` sends only GET, HEAD and OPTIONS, for a one-off check of a
+  service before it is listed; criteria with other methods are `skipped` with
+  `reason_code: not_sent`. Listed services are always run in full.
 - Daily run with GitHub Actions ([`.github/workflows/daily.yml`](.github/workflows/daily.yml),
   also started by hand): every listed service is checked, the JSON results are
   kept on the branch `results` (`runs/<date>/`, `latest/`) and the result pages
@@ -38,10 +44,12 @@ defines the check types; the comments at the top of each file under
 format are resolved by pull requests to dpp-criteria, not in the runner.
 
 Per criterion the result is `passed`, `warning` (passed, with a remark),
-`failed` or `skipped` (with a reason). Only criteria with `status: active`
-count in "N of M"; `passed` and `warning` count as passed, `skipped` is not
-counted. Criteria with `status: proposed` are reported separately as
-"proposed, not counted".
+`failed` or `skipped` (with a reason and a `reason_code`: `not_applicable`,
+`not_implemented`, `no_evidence`, `needs_credentials`, `not_sent`,
+`unreachable` or `not_evaluated`, see "Results" in CRITERIA-FORMAT.md). Only
+criteria with `status: active` count in "N of M"; `passed` and `warning` count
+as passed, `skipped` is not counted. Criteria with `status: proposed` are
+reported separately as "proposed, not counted".
 
 ## Usage
 
@@ -49,6 +57,12 @@ counted. Criteria with `status: proposed` are reported separately as
 ./build.sh
 docker run --rm oydeu/dpp-validator:latest test
 docker run --rm -v "$PWD/results:/app/results" oydeu/dpp-validator:latest run --service ownyourdata-dpp-service
+```
+
+A service that is not listed is checked from a local entry file, read-only:
+
+```sh
+docker run --rm -v "$PWD/local:/app/local" oydeu/dpp-validator:latest run --service local/service.yaml --output local/result.json --read-only
 ```
 
 `docker run --rm -v "$PWD/results:/app/results" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest site --results results --output site`
@@ -76,12 +90,14 @@ checks are meaningless behind a proxy that terminates TLS.
 {
   "validator": { "name": "dpp-validator", "version": "0.1.0" },
   "notice": "Results of automated checks only. ...",
-  "service": { "id": "...", "name": "...", "operator": "...", "api_base": "...", "features": [] },
+  "service": { "id": "...", "name": "...", "operator": "...", "api_base": "...", "features": [], "not_implemented": [] },
   "run_at": "2026-09-28T12:00:00Z",
+  "mode": "full",
   "dpp_criteria": { "repository": "https://github.com/OwnYourData/dpp-criteria", "commit": "<full commit>" },
   "summary": {
     "text": "N of M automated checks passed", "passed": 0, "failed": 0, "warnings": 0, "skipped": 0,
-    "proposed_not_counted": { "text": "...", "passed": 0, "failed": 0, "warnings": 0, "skipped": 0 }
+    "skipped_by_reason": { "not_applicable": 0 },
+    "proposed_not_counted": { "text": "...", "passed": 0, "failed": 0, "warnings": 0, "skipped": 0, "skipped_by_reason": {} }
   },
   "criteria": [
     { "id": "DPP-API-013", "version": 1, "status": "proposed", "title": "...",
@@ -94,7 +110,9 @@ checks are meaningless behind a proxy that terminates TLS.
 ```
 
 `messages` holds failures and warnings (`severity` `error` or `warning`),
-`reason` the reason for `skipped`, `details` what the runner observed.
+`reason` and `reason_code` the reason for `skipped`, `details` what the runner
+observed. `mode` is `full` or `read-only`; `skipped_by_reason` counts the
+skipped criteria per `reason_code` (only codes that occur).
 `description_url` links to the readable description of the criterion in
 `criteria/README.md` of the dpp-criteria commit used; it is absent if that
 commit has no such page.

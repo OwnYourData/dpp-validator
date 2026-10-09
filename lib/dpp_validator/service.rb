@@ -11,12 +11,14 @@ module DppValidator
     def name = data["name"]
     def api_base = data["api_base"]
     def features = Array(data["features"])
+    def not_implemented = Array(data["not_implemented"])
     def test_data = data["test_data"] || {}
     def credentials = data["credentials"] || "none"
 
     def to_h
       { "id" => id, "name" => name, "operator" => data.dig("operator", "name"), "operator_url" => data.dig("operator", "url"),
-        "contact" => data["contact"], "api_base" => api_base, "features" => features, "listed_since" => data["listed_since"].to_s }
+        "contact" => data["contact"], "api_base" => api_base, "features" => features, "not_implemented" => not_implemented,
+        "listed_since" => data["listed_since"].to_s }
     end
   end
 end

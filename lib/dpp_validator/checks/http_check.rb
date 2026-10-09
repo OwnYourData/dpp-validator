@@ -32,8 +32,8 @@ module DppValidator
       end
 
       def call
-        reason = problem
-        return Outcome.skipped(reason) if reason
+        reason, code = problem
+        return Outcome.skipped(reason, code: code) if reason
 
         messages = []
         details = []
@@ -44,12 +44,12 @@ module DppValidator
           response = perform(step)
           responses << response
           details << "#{label}: #{response.describe}"
-          return Outcome.skipped("#{label}: service not reachable (#{response.error})", details: details) if response.unreachable?
+          return Outcome.skipped("#{label}: service not reachable (#{response.error})", code: "unreachable", details: details) if response.unreachable?
 
           step_messages = evaluate(step, response, responses[0...index])
           if step_messages == :skip
             skip_text = "#{label}: HTTP status #{response.status} is listed in skip_if_status"
-            return Outcome.skipped(skip_text, details: details) if messages.none? { |m| m[:severity] == "error" }
+            return Outcome.skipped(skip_text, code: "not_applicable", details: details) if messages.none? { |m| m[:severity] == "error" }
 
             # An earlier step has failed: that failure stands (CRITERIA-FORMAT.md,
             # "Requests and steps"); the remaining steps are not sent.
@@ -66,19 +66,20 @@ module DppValidator
 
       def steps = Array(@check["steps"])
 
+      # [reason, reason_code] if the criterion cannot be evaluated, otherwise nil.
       def problem
         missing = @placeholders.missing(steps.map { |s| s["request"] } + steps.map { |s| s["expect"] })
-        return "no value for #{missing.map { |n| "{#{n}}" }.join(', ')} in the test_data of the service" if missing.any?
+        return ["no value for #{missing.map { |n| "{#{n}}" }.join(', ')} in the test_data of the service", "not_evaluated"] if missing.any?
         if steps.any? { |s| s.dig("request", "auth") == "token" }
-          return "a step needs credentials (auth: token), which this version does not support"
+          return ["a step needs credentials (auth: token), which this version does not support", "needs_credentials"]
         end
         if @check.key?("base_matches") && (reason = EcmaRegexp.problem(@check["base_matches"]))
-          return "regular expression #{@check['base_matches'].to_s.inspect} of base_matches #{reason}"
+          return ["regular expression #{@check['base_matches'].to_s.inspect} of base_matches #{reason}", "not_evaluated"]
         end
 
         steps.each_with_index do |step, index|
           reason = Expectation.new(step["expect"], @placeholders).problem
-          return "step #{index + 1}: #{reason}" if reason
+          return ["step #{index + 1}: #{reason}", "not_evaluated"] if reason
         end
         nil
       end

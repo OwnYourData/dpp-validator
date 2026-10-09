@@ -9,7 +9,8 @@ class SiteTest < ValidatorTestCase
                      "contact" => "office@op.example", "api_base" => "https://api.example/v1", "listed_since" => "2026-10-08" },
       "run_at" => "2026-10-08T12:00:00Z",
       "dpp_criteria" => { "commit" => "c5a0a5ce389ac662ae7612a1bc50d520c09991d9" },
-      "summary" => { "text" => "1 of 2 automated checks passed", "passed" => 1, "failed" => 1, "warnings" => 0, "skipped" => 0,
+      "summary" => { "text" => "1 of 2 automated checks passed", "passed" => 1, "failed" => 1, "warnings" => 0, "skipped" => 1,
+                     "skipped_by_reason" => { "not_implemented" => 1 },
                      "proposed_not_counted" => { "text" => "0 of 0 automated checks passed" } },
       "criteria" => criteria
     }
@@ -28,7 +29,9 @@ class SiteTest < ValidatorTestCase
         criterion("DPP-DEX-006", "active", "failed", messages: [{ "severity" => "error", "message" => "HTTP/1.1 not rejected" }]),
         criterion("DPP-API-013", "active", "passed",
                   description_url: "https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013"),
-        criterion("DPP-OPS-006", "proposed", "skipped", reason: "self-declared")
+        criterion("DPP-OPS-006", "proposed", "skipped", reason: "self-declared", reason_code: "not_evaluated"),
+        criterion("DPP-API-019", "active", "skipped", reason: "the service lists historical-versions as not implemented",
+                  reason_code: "not_implemented")
       ])))
       File.write(File.join(results, "b.json"), JSON.generate(result("svc-b", "Service B", [criterion("DPP-API-013", "active", "passed")])))
       out = File.join(dir, "site")
@@ -42,6 +45,8 @@ class SiteTest < ValidatorTestCase
       assert_includes html, "Proposed criteria, not counted: 0 of 0 automated checks passed"
       assert_includes html, "(proposed, not counted)"
       assert_includes html, "error: HTTP/1.1 not rejected"
+      assert_includes html, "1 skipped: 1 not implemented"
+      assert_includes html, %(<span class="muted">not evaluated</span>)
       assert_includes html, "mailto:office@op.example"
       assert_includes html, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/dex/DPP-DEX-006.yaml"
       assert_includes html, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013")

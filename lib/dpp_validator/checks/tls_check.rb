@@ -51,10 +51,10 @@ module DppValidator
         return Outcome.from([Messages.error("the API base #{@base} does not use HTTPS")]) unless uri.scheme == "https"
         needs_dpp_id = @check.key?("http_versions") || @check["https_redirect"]
         if needs_dpp_id && @context.placeholders.missing("{dppId}").any?
-          return Outcome.skipped("no value for {dppId} in the test_data of the service")
+          return Outcome.skipped("no value for {dppId} in the test_data of the service", code: "not_evaluated")
         end
         if (unreachable = @client.reachable(@base))
-          return Outcome.skipped("service not reachable (#{unreachable.error})")
+          return Outcome.skipped("service not reachable (#{unreachable.error})", code: "unreachable")
         end
 
         parts = []
@@ -75,7 +75,7 @@ module DppValidator
         details = parts.select { |p| p.state == :ok }.map(&:text)
         untested = parts.select { |p| p.state == :untested }.map(&:text)
         if messages.none? { |m| m[:severity] == "error" } && untested.any?
-          return Outcome.new(result: "skipped", reason: untested.join("; "), messages: messages, details: details)
+          return Outcome.skipped(untested.join("; "), code: "not_evaluated", messages: messages, details: details)
         end
 
         Outcome.from(messages, details: details + untested)
