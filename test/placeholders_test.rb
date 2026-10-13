@@ -60,6 +60,22 @@ class PlaceholdersTest < ValidatorTestCase
     assert_raises(DppValidator::Placeholders::Missing) { p.expand_path("/{elementIdPath}") }
   end
 
+  test "the controlled test element is taken from test_data" do
+    p = DppValidator::Placeholders.new("dppId" => "did:oyd:zQm1", "elementIdPath" => "$.a",
+                                       "controlledElementId" => "Dis'mantling",
+                                       "controlledElementIdPath" => "$.Dismantling")
+    assert_equal "/dpps/did%3Aoyd%3AzQm1/elements/%24.Dismantling", p.expand_path("/dpps/{dppId}/elements/{controlledElementIdPath}")
+    assert_equal "$..['Dis\\'mantling']", p.expand_json_path("$..['{controlledElementId}']")
+    assert_equal "$..[?@.elementId == 'Dis\\'mantling']", p.expand_json_path("$..[?@.elementId == '{controlledElementId}']")
+    assert_equal "/dpps/did%3Aoyd%3AzQm1/elements/%24.a", p.expand_path("/dpps/{dppId}/elements/{elementIdPath}")
+  end
+
+  test "a criterion with the controlled test element is skipped without it" do
+    p = DppValidator::Placeholders.new("dppId" => "x", "elementIdPath" => "$.a")
+    assert_equal %w[controlledElementId], p.missing({ "path" => "$..['{controlledElementId}']" })
+    assert_equal %w[controlledElementIdPath], p.missing({ "path" => "/dpps/{dppId}/elements/{controlledElementIdPath}" })
+  end
+
   test "now is the run time in ISO 8601 UTC, randomId is fixed per run" do
     service = service_for("https://localhost/dpp/v1")
     p = DppValidator::Placeholders.for(service, now: Time.utc(2026, 9, 28, 12, 0, 0))

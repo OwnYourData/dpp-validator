@@ -2,8 +2,12 @@
 # dpp-criteria expect: HTTP/2 only, EN 18222 read methods, the compressed
 # representation by default and the full one with representation=full (400
 # for other values), 404 for unknown passports, 400 for malformed requests,
-# 401 for writes without credentials.
+# 401 for writes without credentials. Its passports have one controlled data
+# element (CONTROLLED) that it never delivers without credentials: it is left
+# out of every read, and ReadDataElement answers 401 for it.
 module FakeDppService
+  CONTROLLED = "RepairInformation".freeze
+
   module_function
 
   def passport(dpp_id, product_id)
@@ -43,6 +47,7 @@ module FakeDppService
       in ["GET", p] if p == "/dpp/v1/dppsByProductId/#{enc.(product_id)}" then json.(200, body)
       in ["GET", p] if p == "/dpp/v1/dppsByIdAndDate/#{enc.(dpp_id)}" && query.to_s.start_with?("date=") then json.(200, body)
       in ["GET", p] if p == "/dpp/v1/dpps/#{enc.(dpp_id)}/elements/%24.ProductIdentification.ModelIdentifier" then json.(200, "\"M-1\"")
+      in ["GET", p] if p == "/dpp/v1/dpps/#{enc.(dpp_id)}/elements/%24.#{CONTROLLED}" then json.(401, { "message" => "unauthorised" })
       in ["GET", p] if p.start_with?("/dpp/v1/dpps/#{enc.(dpp_id)}/elements/") then json.(400, { "message" => "invalid elementIdPath" })
       in ["POST", "/dpp/v1/dppsByProductIds"]
         list = JSON.parse(r.body) rescue nil

@@ -7,9 +7,12 @@ require "fileutils"
 # against a local service that behaves as they expect.
 class RunnerTest < ValidatorTestCase
   CRITERIA_DIR = ENV.fetch("DPP_CRITERIA_DIR", "/opt/dpp-criteria")
-  SERVICE_CRITERIA = %w[DPP-API-007 DPP-API-013 DPP-API-014 DPP-API-015 DPP-API-016 DPP-API-019 DPP-API-020 DPP-API-021
-                        DPP-API-022 DPP-API-023 DPP-DEX-002 DPP-DEX-003 DPP-DEX-004 DPP-DEX-005 DPP-DEX-006 DPP-OPS-006
-                        DPP-SEC-001].freeze
+  SERVICE_CRITERIA = %w[DPP-ACC-003 DPP-ACC-006 DPP-ACC-008 DPP-ACC-012 DPP-ACC-014 DPP-API-007 DPP-API-013 DPP-API-014
+                        DPP-API-015 DPP-API-016 DPP-API-019 DPP-API-020 DPP-API-021 DPP-API-022 DPP-API-023 DPP-BAT-004
+                        DPP-DEX-002 DPP-DEX-003 DPP-DEX-004 DPP-DEX-005 DPP-DEX-006 DPP-OPS-006 DPP-SEC-001
+                        DPP-STO-017].freeze
+  # Criteria that need the controlled test element and run without credentials.
+  ACCESS_CRITERIA = %w[DPP-ACC-006 DPP-ACC-012 DPP-STO-017].freeze
   # Criteria with a step whose method a read-only run does not send.
   WRITING_CRITERIA = %w[DPP-API-007 DPP-API-015 DPP-SEC-001].freeze
 
@@ -20,9 +23,13 @@ class RunnerTest < ValidatorTestCase
     @tls = server(protocols: %w[h2], tls: %w[1.2 1.3], &FakeDppService.handler(DPP_ID, PRODUCT_ID))
   end
 
-  def service(**overrides)
-    service_for(@tls.url("/dpp/v1"), features: %w[fine-granular-api write-api historical-versions],
-                                      test_data: { "elementIdPath" => "$.ProductIdentification.ModelIdentifier" }, **overrides)
+  def service(**overrides) = service_at(@tls.url("/dpp/v1"), **overrides)
+
+  def service_at(base, **overrides)
+    service_for(base, features: %w[fine-granular-api write-api historical-versions access-levels],
+                      test_data: { "elementIdPath" => "$.ProductIdentification.ModelIdentifier",
+                                   "controlledElementId" => FakeDppService::CONTROLLED,
+                                   "controlledElementIdPath" => "$.#{FakeDppService::CONTROLLED}" }, **overrides)
   end
 
   def run_with(repository, service = self.service, read_only: false)
@@ -52,7 +59,9 @@ class RunnerTest < ValidatorTestCase
     report = run_with(DppValidator::CriteriaRepository.new(CRITERIA_DIR))
     by_id = results(report)
     assert_equal SERVICE_CRITERIA, by_id.keys
-    expected_skips = { "DPP-API-016" => [/automated-auth/, "needs_credentials"], "DPP-OPS-006" => [/self-declared/, "not_evaluated"] }
+    expected_skips = { "DPP-API-016" => [/automated-auth/, "needs_credentials"], "DPP-ACC-003" => [/automated-auth/, "needs_credentials"],
+                       "DPP-OPS-006" => [/self-declared/, "not_evaluated"], "DPP-ACC-008" => [/self-declared/, "not_evaluated"],
+                       "DPP-ACC-014" => [/self-declared/, "not_evaluated"], "DPP-BAT-004" => [/battery/, "not_applicable"] }
     by_id.each do |id, r|
       if expected_skips[id]
         assert_equal "skipped", r["result"], id
@@ -64,7 +73,7 @@ class RunnerTest < ValidatorTestCase
     end
     assert report.not_run.any? { |n| n["id"] == "DPP-DAT-014" }
     assert_equal "full", report.to_h["mode"]
-    assert_equal({ "needs_credentials" => 1, "not_evaluated" => 1 }, report.proposed_summary["skipped_by_reason"])
+    assert_equal({ "needs_credentials" => 2, "not_evaluated" => 3, "not_applicable" => 1 }, report.proposed_summary["skipped_by_reason"])
   end
 
   test "read-only run: criteria with other methods are skipped as not_sent, nothing but GET, HEAD and OPTIONS is sent" do
@@ -145,6 +154,37 @@ class RunnerTest < ValidatorTestCase
     assert_match(/lists historical-versions as not implemented/, by_id["DPP-API-019"]["reason"])
     assert_equal "not_implemented", by_id["DPP-API-016"]["reason_code"]
     assert_equal %w[write-api historical-versions], report.to_h.dig("service", "not_implemented")
+  end
+
+  test "a service that delivers the controlled test element without credentials" do
+    leaking = server(protocols: %w[h2]) do |r|
+      if r.path.include?("/elements/%24.#{FakeDppService::CONTROLLED}")
+        json(200, "\"secret\"")
+      else
+        status, headers, body = FakeDppService.handler(DPP_ID, PRODUCT_ID).call(r)
+        value = JSON.parse(body) rescue nil
+        if status == 200 && value.is_a?(Hash) && value.key?("digitalProductPassportId")
+          if value["elements"]
+            value["elements"] << { "elementId" => FakeDppService::CONTROLLED, "objectType" => "SingleValuedDataElement", "value" => "secret" }
+          else
+            value[FakeDppService::CONTROLLED] = "secret"
+          end
+          body = JSON.generate(value)
+        end
+        [status, headers, body]
+      end
+    end
+    report = run_with(DppValidator::CriteriaRepository.new(CRITERIA_DIR), service_at(leaking.url("/dpp/v1")))
+    by_id = results(report)
+    ACCESS_CRITERIA.each { |id| assert_equal "failed", by_id[id]["result"], "#{id}: #{by_id[id].inspect}" }
+  end
+
+  test "a service without access levels: the access criteria are not_applicable or not_implemented" do
+    by_id = results(run_with(DppValidator::CriteriaRepository.new(CRITERIA_DIR), service(features: %w[fine-granular-api historical-versions])))
+    ACCESS_CRITERIA.each { |id| assert_equal %w[skipped not_applicable], by_id[id].values_at("result", "reason_code"), id }
+    by_id = results(run_with(DppValidator::CriteriaRepository.new(CRITERIA_DIR),
+                             service(features: %w[fine-granular-api historical-versions], not_implemented: %w[access-levels])))
+    ACCESS_CRITERIA.each { |id| assert_equal %w[skipped not_implemented], by_id[id].values_at("result", "reason_code"), id }
   end
 
   test "a service that answers HTTP/1.1 and does not evaluate JSONPath" do
