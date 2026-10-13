@@ -230,4 +230,28 @@ class HttpCheckTest < ValidatorTestCase
     assert_result "failed", outcome
     assert_match(/no response: certificate not valid/, messages_text(outcome).first)
   end
+
+  test "a controlled test element is looked up by name and by elementId (DPP-ACC-006 form)" do
+    steps = [get("/dpps/{dppId}", { "status" => [200], "json" => [{ "path" => "$..['{controlledElementId}']", "exists" => false }] }),
+             get("/dpps/{dppId}?representation=full",
+                 { "status" => [200], "json" => [{ "path" => "$.elements", "exists" => true },
+                                                 { "path" => "$..[?@.elementId == '{controlledElementId}']", "exists" => false }] })]
+    public_only = { "compressed" => PASSPORT.merge("Model" => "M1"),
+                    "full" => PASSPORT.merge("elements" => [{ "elementId" => "Model", "value" => "M1" }]) }
+    leaking = { "compressed" => PASSPORT.merge("Model" => "M1", "Repair" => { "Dismantling" => "x" }),
+                "full" => PASSPORT.merge("elements" => [{ "elementId" => "Repair",
+                                                          "elements" => [{ "elementId" => "Dismantling", "value" => "x" }] }]) }
+    data = { "controlledElementId" => "Dismantling" }
+    [[public_only, "passed"], [leaking, "failed"]].each do |bodies, expected|
+      s = server { |r| json(200, r.path.include?("representation=full") ? bodies["full"] : bodies["compressed"]) }
+      assert_result expected, run_check(check(*steps), base(s), test_data: data)
+    end
+  end
+
+  test "without the controlled test element in test_data the check is skipped" do
+    s = server { json(200, PASSPORT) }
+    outcome = run_check(check(get("/dpps/{dppId}", { "json" => [{ "path" => "$..['{controlledElementId}']", "exists" => false }] })), base(s))
+    assert_result "skipped", outcome
+    assert_empty s.received
+  end
 end

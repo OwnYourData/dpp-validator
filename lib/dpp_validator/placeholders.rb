@@ -1,8 +1,9 @@
 module DppValidator
   # Placeholders of CRITERIA-FORMAT.md ("Placeholders in checks"): {base},
-  # {dppId}, {productId}, {elementIdPath}, {randomId}, {now}. Values come from
-  # the service entry (api_base, test_data) and from the run ({randomId} and
-  # {now} are fixed once per run).
+  # {dppId}, {productId}, {elementIdPath}, {controlledElementId},
+  # {controlledElementIdPath}, {randomId}, {now}. Values come from the service
+  # entry (api_base, test_data) and from the run ({randomId} and {now} are
+  # fixed once per run).
   #
   # In the path of an http request, placeholder values are percent-encoded:
   # every octet outside the unreserved characters of RFC 3986 (A-Z a-z 0-9
@@ -22,7 +23,7 @@ module DppValidator
   # Only the names above are placeholders; other text in braces, such as the
   # body "{not json" of DPP-API-007, stays unchanged.
   class Placeholders
-    NAMES = %w[base dppId productId elementIdPath randomId now].freeze
+    NAMES = %w[base dppId productId elementIdPath controlledElementId controlledElementIdPath randomId now].freeze
     PATTERN = /\{(#{NAMES.join('|')})\}/
     UNRESERVED = /[^A-Za-z0-9\-._~]/
 
@@ -42,6 +43,8 @@ module DppValidator
         "dppId" => data["dppId"],
         "productId" => data["productId"],
         "elementIdPath" => data["elementIdPath"],
+        "controlledElementId" => data["controlledElementId"],
+        "controlledElementIdPath" => data["controlledElementIdPath"],
         "randomId" => random_id || "dpp-validator-#{SecureRandom.hex(16)}",
         "now" => now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
       )
