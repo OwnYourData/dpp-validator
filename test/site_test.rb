@@ -56,7 +56,14 @@ class SiteTest < ValidatorTestCase
       html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
       assert_includes html, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
       assert_includes html, %(<h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>)
-      assert_includes html, %(<footer>\n<div class="funding">#{DppValidator::Funding.html}</div>\n</footer>)
+      footer = html[%r{<footer>.*</footer>}m]
+      assert footer, "footer"
+      assert html.index("</main>") < html.index("<footer>"), "footer outside main, so its line spans the window"
+      refute_match(/body \{[^}]*max-width/, html, "body is not limited in width")
+      assert_includes footer, %(Operated by <a href="https://www.ownyourdata.eu/en/">OwnYourData</a>)
+      assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/imprint/">Imprint</a>)
+      assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/privacy-policy/">Privacy</a>)
+      assert_includes footer, %(<div class="funding">#{DppValidator::Funding.html}</div>)
       assert_equal 1, html.scan("917177").size
       assert_equal File.binread(DppValidator::Site::MARK), File.binread(File.join(out, "oyd-mark.svg"))
       assert html.index("DPP-DEX-006") < html.index("DPP-API-013"), "failed before passed"
