@@ -14,18 +14,19 @@
     "features": [
       "fine-granular-api",
       "write-api",
-      "historical-versions"
+      "historical-versions",
+      "access-levels"
     ],
     "not_implemented": [
-      "access-levels"
+
     ],
     "listed_since": "2026-10-08"
   },
-  "run_at": "2026-10-17T08:34:46Z",
+  "run_at": "2026-10-17T13:28:39Z",
   "mode": "full",
   "dpp_criteria": {
     "repository": "https://github.com/OwnYourData/dpp-criteria",
-    "commit": "efc12bf882a4338524446153da1b7a9bc5393825"
+    "commit": "e830ee5569ce20cddda1659c8e552b0c35cc90c0"
   },
   "summary": {
     "text": "15 of 15 automated checks passed",
@@ -36,15 +37,15 @@
     "skipped_by_reason": {
     },
     "proposed_not_counted": {
-      "text": "0 of 0 automated checks passed",
-      "passed": 0,
-      "failed": 0,
+      "text": "2 of 3 automated checks passed",
+      "passed": 2,
+      "failed": 1,
       "warnings": 0,
-      "skipped": 9,
+      "skipped": 6,
       "skipped_by_reason": {
-        "not_implemented": 7,
-        "needs_credentials": 1,
-        "not_evaluated": 1
+        "not_applicable": 1,
+        "needs_credentials": 2,
+        "not_evaluated": 3
       }
     }
   },
@@ -54,14 +55,14 @@
       "version": 1,
       "status": "proposed",
       "title": "Controlled data elements are delivered per role",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-acc-003",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-acc-003",
       "level": "MUST",
       "target": "service",
       "method": "automated-auth",
       "check_type": "http",
       "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "reason": "needs test credentials of the operator (automated-auth), not supported in this version",
+      "reason_code": "needs_credentials",
       "messages": [
 
       ],
@@ -75,19 +76,19 @@
       "version": 1,
       "status": "proposed",
       "title": "Controlled data elements are not delivered without authorisation",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-acc-006",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-acc-006",
       "level": "MUST",
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "result": "passed",
       "messages": [
 
       ],
       "details": [
-
+        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
+        "step 2 (GET /dpps/{dppId}?representation=full): HTTP 200 over HTTP/2",
+        "step 3 (GET /dppsByProductId/{productId}): HTTP 200 over HTTP/2"
       ],
       "counted": false
     },
@@ -96,14 +97,14 @@
       "version": 1,
       "status": "proposed",
       "title": "Access policy defines element-level rights, granting and revocation",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-acc-008",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-acc-008",
       "level": "MUST",
       "target": "service",
       "method": "self-declared",
       "check_type": "declaration",
       "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "reason": "self-declared criterion: declarations are not evaluated in this version and never count as passed",
+      "reason_code": "not_evaluated",
       "messages": [
 
       ],
@@ -117,19 +118,20 @@
       "version": 1,
       "status": "proposed",
       "title": "Fine-granular read of a controlled element without credentials is refused",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-acc-012",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-acc-012",
       "level": "MUST",
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 404, expected 401 or 403"
+        }
       ],
       "details": [
-
+        "step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP 404 over HTTP/2"
       ],
       "counted": false
     },
@@ -138,14 +140,14 @@
       "version": 1,
       "status": "proposed",
       "title": "Access to controlled data is logged tamper-evidently",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-acc-014",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-acc-014",
       "level": "MUST",
       "target": "service",
       "method": "self-declared",
       "check_type": "declaration",
       "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "reason": "self-declared criterion: declarations are not evaluated in this version and never count as passed",
+      "reason_code": "not_evaluated",
       "messages": [
 
       ],
@@ -159,7 +161,7 @@
       "version": 2,
       "status": "active",
       "title": "Errors use the EN 18222 status codes",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-007",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-007",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -179,7 +181,7 @@
       "version": 1,
       "status": "active",
       "title": "Lifecycle API provides ReadDPPById",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-013",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-013",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -198,7 +200,7 @@
       "version": 1,
       "status": "active",
       "title": "Lifecycle API provides ReadDPPByProductId",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-014",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-014",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -217,7 +219,7 @@
       "version": 1,
       "status": "active",
       "title": "Lifecycle API provides ReadDPPIdsByProductIds",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-015",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-015",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -236,7 +238,7 @@
       "version": 1,
       "status": "proposed",
       "title": "Lifecycle API provides UpdateDPPById",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-016",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-016",
       "level": "MUST",
       "target": "service",
       "method": "automated-auth",
@@ -257,7 +259,7 @@
       "version": 1,
       "status": "active",
       "title": "Lifecycle API provides ReadDPPVersionByIdAndDate",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-019",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-019",
       "level": "SHOULD",
       "target": "service",
       "method": "automated",
@@ -276,7 +278,7 @@
       "version": 1,
       "status": "active",
       "title": "API paths carry the version prefix v1/",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-020",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-020",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -295,7 +297,7 @@
       "version": 2,
       "status": "active",
       "title": "elementIdPath uses RFC 9535 JSONPath",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-021",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-021",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -315,7 +317,7 @@
       "version": 1,
       "status": "active",
       "title": "Unknown passport ID is answered with 404",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-022",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-022",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -334,7 +336,7 @@
       "version": 1,
       "status": "active",
       "title": "API honours the representation query flag",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-api-023",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-api-023",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -356,14 +358,14 @@
       "version": 2,
       "status": "proposed",
       "title": "Battery passport releases Annex XIII point 3 data only to authorities",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-bat-004",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-bat-004",
       "level": "MUST",
       "target": "service",
       "method": "automated-auth",
       "check_type": "http",
       "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "reason": "the service does not declare battery",
+      "reason_code": "not_applicable",
       "messages": [
 
       ],
@@ -377,7 +379,7 @@
       "version": 1,
       "status": "active",
       "title": "HTTPS with a valid certificate",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-dex-002",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-dex-002",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -388,7 +390,7 @@
       ],
       "details": [
         "certificate valid for dpp-service.ownyourdata.eu",
-        "plain HTTP redirected to https://dpp-service.ownyourdata.eu/dpp/v1/dpps/did%3Aoyd%3AzQmTMPiMZ6mUg5bVXQxkuZ1JCgmtKE9QNu514EdMUydq9zL"
+        "plain HTTP redirected to https://dpp-service.ownyourdata.eu/dpp/v1/dpps/did%3Aoyd%3AzQmd6vKekgUJGc7QEctiUiphFQSBpwfrRnAZjQ6Bj5TYamx"
       ],
       "counted": true
     },
@@ -397,7 +399,7 @@
       "version": 1,
       "status": "active",
       "title": "TLS 1.2 or higher, older versions refused",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-dex-003",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-dex-003",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -420,7 +422,7 @@
       "version": 1,
       "status": "active",
       "title": "API responses are JSON",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-dex-004",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-dex-004",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -439,7 +441,7 @@
       "version": 1,
       "status": "active",
       "title": "HTTP/2 is supported",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-dex-005",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-dex-005",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -459,7 +461,7 @@
       "version": 1,
       "status": "active",
       "title": "HTTP versions below HTTP/2 are not used",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-dex-006",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-dex-006",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -480,7 +482,7 @@
       "version": 1,
       "status": "proposed",
       "title": "Separate test and production environments",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-ops-006",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-ops-006",
       "level": "SHOULD",
       "target": "operator",
       "method": "self-declared",
@@ -501,7 +503,7 @@
       "version": 3,
       "status": "active",
       "title": "Passport cannot be changed without authorisation",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-sec-001",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-sec-001",
       "level": "MUST",
       "target": "service",
       "method": "automated",
@@ -523,19 +525,17 @@
       "version": 1,
       "status": "proposed",
       "title": "Archived versions keep the access restrictions",
-      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/efc12bf882a4338524446153da1b7a9bc5393825/criteria/README.md#dpp-sto-017",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/e830ee5569ce20cddda1659c8e552b0c35cc90c0/criteria/README.md#dpp-sto-017",
       "level": "MUST",
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "skipped",
-      "reason": "the service lists access-levels as not implemented",
-      "reason_code": "not_implemented",
+      "result": "passed",
       "messages": [
 
       ],
       "details": [
-
+        "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP 200 over HTTP/2"
       ],
       "counted": false
     }
