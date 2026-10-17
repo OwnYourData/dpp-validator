@@ -5,8 +5,10 @@ module DppValidator
   # Static result pages for GitHub Pages: index.html with the latest result of
   # every listed service, and the JSON results next to it (results/<id>.json).
   # The mark shown next to the title and used as icon (assets/oyd-mark.svg) is
-  # copied next to index.html; the footer carries the funding notice of
-  # config/funding.yml.
+  # copied next to index.html. The footer spans the full width of the window
+  # and names the operator, the imprint and the privacy policy of OwnYourData
+  # and the funding notice of config/funding.yml; only its content and the main
+  # content are limited to the width of the page (.wrap).
   #
   # Wording follows CRITERIA-FORMAT.md ("Results wording"): "N of M automated
   # checks passed" for active criteria only, proposed criteria marked as not
@@ -15,6 +17,9 @@ module DppValidator
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
     MARK = File.expand_path("../../assets/oyd-mark.svg", __dir__)
+    OPERATOR_URL = "https://www.ownyourdata.eu/en/".freeze
+    IMPRINT_URL = "https://www.ownyourdata.eu/en/imprint/".freeze
+    PRIVACY_URL = "https://www.ownyourdata.eu/en/privacy-policy/".freeze
     ORDER = { "failed" => 0, "warning" => 1, "passed" => 2, "skipped" => 3 }.freeze
     REASON_LABELS = {
       "not_applicable" => "not applicable", "not_implemented" => "not implemented", "no_evidence" => "no evidence",
@@ -71,8 +76,9 @@ module DppValidator
             :root { --fg: #e8eaed; --muted: #a0a4aa; --line: #3a3d42; --panel: #202226; --bg: #151618;
                     --passed: #6fcf8f; --warning: #e7b75f; --failed: #f28b82; --skipped: #a0a4aa; }
           }
-          body { font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg);
-                 max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+          body { font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg); margin: 0; }
+          .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+          main.wrap { padding-top: 24px; }
           h1 { font-size: 1.6rem; margin: 0 0 4px; }
           .brand { display: flex; align-items: center; gap: 9px; }
           .brand .mark { width: 15px; height: auto; display: block; }
@@ -93,11 +99,15 @@ module DppValidator
           .failed { color: var(--failed); } .skipped { color: var(--skipped); }
           dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0; font-size: .92rem; }
           dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
-          footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); }
-          footer .funding { font-size: 13px; color: var(--muted); }
+          footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+          footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+          footer a { color: var(--muted); }
+          footer .legal a { margin-right: 16px; }
+          footer .funding { flex-basis: 100%; font-size: 13px; }
         </style>
         </head>
         <body>
+        <main class="wrap">
         <h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>
         <p>Automated checks of Digital Product Passport services against the criteria of
         <a href="#{CRITERIA_REPO}">dpp-criteria</a>, run daily by
@@ -106,8 +116,13 @@ module DppValidator
         Passport content is checked by <a href="https://dpplint.ownyourdata.eu">dpplint</a>.</p>
         <p class="notice">#{h(Report::NOTICE)}</p>
         #{results.map { |r| service_section(r) }.join("\n")}
+        </main>
         <footer>
+        <div class="wrap">
+        <div>Operated by <a href="#{OPERATOR_URL}">OwnYourData</a></div>
+        <div class="legal"><a href="#{IMPRINT_URL}">Imprint</a><a href="#{PRIVACY_URL}">Privacy</a></div>
         <div class="funding">#{Funding.html}</div>
+        </div>
         </footer>
         </body>
         </html>
