@@ -123,12 +123,20 @@ commit has no such page.
 - `lib/dpp_validator/transport/` – HTTP/1.x and HTTP/2 over TLS with ALPN, TLS version probes
 - `lib/dpp_validator/from_dpplint/` – `EcmaRegexp`, `IRegexp`, `HeaderAssertion`, copied unchanged from dpplint (source commit in each file header), with their tests under `test/from_dpplint/`
 - `test/` – Minitest; local HTTPS test servers with their own CA, HTTP/1.1 and HTTP/2
+- `assets/oyd-mark.svg` – the OwnYourData mark next to the title of the result pages, also their icon
+- `config/funding.yml` – the funding notice in the footer of the result pages and in this README, the one place where its wording is kept
 
 ## Third-party components
 
 [http-2](https://github.com/igrigorik/http-2) (MIT), [janeway-jsonpath](https://github.com/gongfarmer/janeway)
 (MIT; `match()`/`search()` and comparisons with a bare `@` are adapted in
 `json_path.rb`), [json_schemer](https://github.com/davishmcclurg/json_schemer) (MIT).
+
+## Funding
+
+<!-- funding:begin -->
+The DPP Service Validator is part of [PACE-DPP](https://dpp-austria.at/) – Promoting and Accelerating a Digital Product Passport based Data-Service Ecosystem. This Lighthouse Project has been made possible by financial contributions from the Austrian Federal Ministry of Innovation, Mobility and Infrastructure ([BMIMI](https://www.bmimi.gv.at/en.html), formerly BMK), supported by the Austrian Research Promotion Agency (FFG) under grant number [917177](https://projekte.ffg.at/projekt/5128301), as well as from the German Federal Ministry of Research, Technology and Space (BMFTR, formerly BMWK), supported by the German Research Promotion Agency (DLR-PT).
+<!-- funding:end -->
 
 ## License
 

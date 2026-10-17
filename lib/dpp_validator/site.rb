@@ -4,6 +4,9 @@ require "fileutils"
 module DppValidator
   # Static result pages for GitHub Pages: index.html with the latest result of
   # every listed service, and the JSON results next to it (results/<id>.json).
+  # The mark shown next to the title and used as icon (assets/oyd-mark.svg) is
+  # copied next to index.html; the footer carries the funding notice of
+  # config/funding.yml.
   #
   # Wording follows CRITERIA-FORMAT.md ("Results wording"): "N of M automated
   # checks passed" for active criteria only, proposed criteria marked as not
@@ -11,6 +14,7 @@ module DppValidator
   # no external resources.
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
+    MARK = File.expand_path("../../assets/oyd-mark.svg", __dir__)
     ORDER = { "failed" => 0, "warning" => 1, "passed" => 2, "skipped" => 3 }.freeze
     REASON_LABELS = {
       "not_applicable" => "not applicable", "not_implemented" => "not implemented", "no_evidence" => "no evidence",
@@ -32,6 +36,7 @@ module DppValidator
       results.each do |r|
         File.write(File.join(@output_dir, "results", "#{r.dig('service', 'id')}.json"), "#{JSON.pretty_generate(r)}\n")
       end
+      FileUtils.cp(MARK, File.join(@output_dir, "oyd-mark.svg"))
       File.write(File.join(@output_dir, "index.html"), page(results))
       results.size
     end
@@ -58,6 +63,7 @@ module DppValidator
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>DPP service checks</title>
+        <link rel="icon" href="oyd-mark.svg" type="image/svg+xml">
         <style>
           :root { --fg: #1d1d1f; --muted: #5f6368; --line: #d9dce1; --panel: #f6f7f9; --bg: #fff;
                   --passed: #1e7a3c; --warning: #8a5a00; --failed: #b3261e; --skipped: #5f6368; }
@@ -68,6 +74,8 @@ module DppValidator
           body { font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--fg); background: var(--bg);
                  max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
           h1 { font-size: 1.6rem; margin: 0 0 4px; }
+          .brand { display: flex; align-items: center; gap: 9px; }
+          .brand .mark { width: 15px; height: auto; display: block; }
           h2 { font-size: 1.25rem; margin: 32px 0 4px; }
           a { color: inherit; }
           .muted, .notice { color: var(--muted); }
@@ -85,10 +93,12 @@ module DppValidator
           .failed { color: var(--failed); } .skipped { color: var(--skipped); }
           dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0; font-size: .92rem; }
           dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+          footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--line); }
+          footer .funding { font-size: 13px; color: var(--muted); }
         </style>
         </head>
         <body>
-        <h1>DPP service checks</h1>
+        <h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>
         <p>Automated checks of Digital Product Passport services against the criteria of
         <a href="#{CRITERIA_REPO}">dpp-criteria</a>, run daily by
         <a href="https://github.com/OwnYourData/dpp-validator">dpp-validator</a>.
@@ -96,6 +106,9 @@ module DppValidator
         Passport content is checked by <a href="https://dpplint.ownyourdata.eu">dpplint</a>.</p>
         <p class="notice">#{h(Report::NOTICE)}</p>
         #{results.map { |r| service_section(r) }.join("\n")}
+        <footer>
+        <div class="funding">#{Funding.html}</div>
+        </footer>
         </body>
         </html>
       HTML

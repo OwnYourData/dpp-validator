@@ -52,7 +52,13 @@ class SiteTest < ValidatorTestCase
       assert_includes html, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013")
       assert_includes html, DppValidator::Report::NOTICE
       refute_match(/conformant|certified/i, html.sub(DppValidator::Report::NOTICE, ""))
-      refute_match(%r{<(script|link)\b|src="http}i, html, "no external resources")
+      refute_match(%r{<script\b|src="(https?:)?//}i, html, "no external resources")
+      html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
+      assert_includes html, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
+      assert_includes html, %(<h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>)
+      assert_includes html, %(<footer>\n<div class="funding">#{DppValidator::Funding.html}</div>\n</footer>)
+      assert_equal 1, html.scan("917177").size
+      assert_equal File.binread(DppValidator::Site::MARK), File.binread(File.join(out, "oyd-mark.svg"))
       assert html.index("DPP-DEX-006") < html.index("DPP-API-013"), "failed before passed"
       assert html.index("DPP-API-013") < html.index("DPP-OPS-006"), "proposed after active"
       assert_equal "svc-a", JSON.parse(File.read(File.join(out, "results", "svc-a.json"))).dig("service", "id")

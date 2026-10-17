@@ -7,3 +7,12 @@ Rake::TestTask.new(:test) do |t|
 end
 
 task default: :test
+
+namespace :funding do
+  desc "Write the funding notice from config/funding.yml into the README"
+  task :write do
+    require_relative "lib/dpp_validator"
+    DppValidator::Funding.write!
+    puts "written: README.md"
+  end
+end
