@@ -13,8 +13,10 @@ module DppValidator
   # - results/<id>.json and linter/<id>.json: the JSON results;
   # - available-services.json (Available).
   #
-  # The mark shown next to the title and used as icon (assets/oyd-mark.svg) is
-  # copied next to index.html. The footer spans the full width of the window
+  # The header names the DPP Service Validator next to the mark (assets/oyd-mark.svg,
+  # also the icon, copied next to index.html) and links to the DPP Service and
+  # to this repository, as on the start page of the DPP Service. Header and
+  # footer span the full width of the window
   # and names the operator, the imprint and the privacy policy of OwnYourData
   # and the funding notice of config/funding.yml; only its content and the main
   # content are limited to the width of the page (.wrap).
@@ -25,6 +27,8 @@ module DppValidator
   # results are no certification. The pages have no external resources.
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
+    REPO = "https://github.com/OwnYourData/dpp-validator".freeze
+    DPP_SERVICE_URL = "https://dpp-service.ownyourdata.eu/".freeze
     SERVICES_README = "#{CRITERIA_REPO}/blob/main/services/README.md".freeze
     DEFAULT_SITE_URL = "https://ownyourdata.github.io/dpp-validator/".freeze
     MARK = File.expand_path("../../assets/oyd-mark.svg", __dir__)
@@ -164,7 +168,7 @@ module DppValidator
         HTML
       end
       <<~HTML
-        <h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>
+        <h1>DPP service checks</h1>
         <p>DPP services that implement or relate to EN 18222, with automated checks against the criteria of
         <a href="#{CRITERIA_REPO}">dpp-criteria</a>: example passports are checked with
         <a href="https://dpplint.ownyourdata.eu">dpplint</a>, the services with
@@ -185,7 +189,7 @@ module DppValidator
     def detail_body(s, result, lint)
       <<~HTML
         <p><a href="../index.html">All services</a></p>
-        <h1 class="brand"><img class="mark" src="../oyd-mark.svg" alt="" width="15" height="28">#{h(s.name)}</h1>
+        <h1>#{h(s.name)}</h1>
         <p><strong>#{h(SOURCE_LABELS.fetch(s.source))}</strong>#{s.research? ? " &middot; information as of #{h(s.as_of)}" : ''}</p>
         <dl>
           <dt>Operator</dt><dd>#{link(s.data.dig('operator', 'url'), operator_text(s))}</dd>
@@ -295,8 +299,14 @@ module DppValidator
           .wrap { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
           main.wrap { padding-top: 24px; }
           h1 { font-size: 1.6rem; margin: 0 0 4px; }
-          .brand { display: flex; align-items: center; gap: 9px; }
-          .brand .mark { width: 15px; height: auto; display: block; }
+          header { padding: 20px 0; border-bottom: 1px solid var(--line); }
+          header .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+          header .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; text-decoration: none; }
+          header .brand span { color: var(--muted); font-weight: 400; }
+          header .brand .mark { width: 15px; height: auto; display: block; }
+          header nav a { color: var(--muted); text-decoration: none; margin-left: 18px; font-size: 15px; }
+          header nav a:hover { color: var(--fg); }
+          @media (max-width: 600px) { header nav a { margin: 0 14px 0 0; } }
           h2 { font-size: 1.25rem; margin: 32px 0 4px; }
           h3 { font-size: 1.05rem; margin: 20px 0 2px; }
           a { color: inherit; }
@@ -323,6 +333,12 @@ module DppValidator
         </style>
         </head>
         <body>
+        <header>
+        <div class="wrap">
+        <a class="brand" href="#{up}index.html"><img class="mark" src="#{up}oyd-mark.svg" alt="" width="15" height="28">DPP Service Validator <span>&middot; OwnYourData</span></a>
+        <nav><a href="#{DPP_SERVICE_URL}">DPP Service</a><a href="#{REPO}">GitHub</a></nav>
+        </div>
+        </header>
         <main class="wrap">
         #{body}
         </main>
