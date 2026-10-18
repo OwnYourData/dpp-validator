@@ -5,7 +5,9 @@ against listed Digital Product Passport (DPP) services and reports
 "N of M automated checks passed" per service and run.
 
 Results are results of automated checks only. They are no certification and
-do not establish a presumption of conformity.
+do not establish a presumption of conformity. dpp-validator is part of a
+research project and shares what we currently know; the list of services makes
+no claim to be complete and is not a legal assessment.
 
 Passport criteria (a published passport behind a product identifier) are
 checked by [dpplint](https://github.com/OwnYourData/dpplint); this repository
@@ -20,15 +22,25 @@ covers the behaviour of the DPP service and its API.
 - Features a service lists under `not_implemented` give `skipped` with
   `reason_code: not_implemented`; features it does not declare at all give
   `not_applicable`.
-- `--read-only` sends only GET, HEAD and OPTIONS, for a one-off check of a
-  service before it is listed; criteria with other methods are `skipped` with
-  `reason_code: not_sent`. Listed services are always run in full.
-- Daily run with GitHub Actions ([`.github/workflows/daily.yml`](.github/workflows/daily.yml),
-  also started by hand): every listed service is checked, the JSON results are
-  kept on the branch `results` (`runs/<date>/`, `latest/`) and the result pages
-  are published on GitHub Pages.
-- Not yet: rating over several days (`history`, DPP-ID-002), passport criteria
-  through dpplint.
+- Two kinds of entries in `services/` of dpp-criteria (`entry.source`):
+  entries maintained by the operator are run in full every day; entries from
+  our research are run read-only (only GET, HEAD and OPTIONS) once a week, or
+  not at all if `check.mode` is `none`. `--read-only` makes any run read-only;
+  criteria with other methods are `skipped` with `reason_code: not_sent`.
+- The example passports of an entry (`example_passports`) are checked with the
+  API of [dpplint](https://dpplint.ownyourdata.eu) in the same run as the
+  service: daily for operator entries, weekly for research entries, also when
+  the service itself is not checked.
+- Run with GitHub Actions ([`.github/workflows/daily.yml`](.github/workflows/daily.yml),
+  every day at about 04:17 UTC, the weekly checks on Mondays; started by hand
+  with the input `weekly` for both): the JSON results are kept on the branch
+  `results` (`runs/<date>/`, `latest/`, dpplint results under `linter/`), and
+  the result pages and `available-services.json` are published on GitHub
+  Pages: <https://ownyourdata.github.io/dpp-validator/>.
+- Requests carry the User-Agent
+  `dpp-validator/<version> (+https://github.com/OwnYourData/dpp-validator; office@ownyourdata.eu)`
+  and go one after the other.
+- Not yet: rating over several days (`history`, DPP-ID-002).
 
 ## How it works
 
@@ -59,15 +71,30 @@ docker run --rm oydeu/dpp-validator:latest test
 docker run --rm -v "$PWD/results:/app/results" oydeu/dpp-validator:latest run --service ownyourdata-dpp-service
 ```
 
+`run` checks one entry: in full for an operator entry, read-only for an entry
+from our research; an entry with `check.mode: none` is refused. `cycle` does
+what the scheduled workflow does for one cadence, with the dpplint checks of
+the example passports:
+
+```sh
+docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
+docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence weekly --output out
+```
+
+`services --cadence daily|weekly` lists the entries whose service is run with
+that cadence.
+
 A service that is not listed is checked from a local entry file, read-only:
 
 ```sh
 docker run --rm -v "$PWD/local:/app/local" oydeu/dpp-validator:latest run --service local/service.yaml --output local/result.json --read-only
 ```
 
-`docker run --rm -v "$PWD/results:/app/results" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest site --results results --output site`
-writes the result pages (`site/index.html`) from the JSON results, as the
-daily workflow does.
+`docker run --rm -v "$PWD/out:/app/out" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest site --results out --output site --this-service ownyourdata-dpp-service`
+writes the result pages from the entries of the dpp-criteria checkout and the
+JSON results, as the workflow does: `site/index.html` (overview),
+`site/services/<id>.html` (one page per entry), `site/results/`,
+`site/linter/` and `site/available-services.json`.
 
 `./build.sh <ref>` builds with another dpp-criteria commit, branch or tag
 (resolved to its commit). The JSON result is written to
@@ -116,6 +143,75 @@ skipped criteria per `reason_code` (only codes that occur).
 `description_url` links to the readable description of the criterion in
 `criteria/README.md` of the dpp-criteria commit used; it is absent if that
 commit has no such page.
+
+## Linter result
+
+`cycle` writes `linter/<id>.json` for every entry with example passports:
+
+```json
+{
+  "service_id": "ownyourdata-dpp-service",
+  "checked_at": "2026-10-18T04:20:00Z",
+  "dpplint": "https://dpplint.ownyourdata.eu",
+  "passports": [
+    { "product_id": "https://...", "label": "reference passport", "lint_url": "https://dpplint.ownyourdata.eu/?productId=...",
+      "status": "checked", "dpp_criteria": "<commit>",
+      "summary": { "text": "5 of 5 automated checks passed", "passed": 5, "failed": 0, "total": 5, "warnings": 1, "skipped": 1, "proposed_failed": 0 },
+      "criteria": [ { "id": "DPP-ID-016", "title": "...", "status": "active", "result": "warning" } ] }
+  ]
+}
+```
+
+`status` is `checked` or `error` (with `error`, e.g. when dpplint cannot be
+reached).
+
+## available-services.json
+
+The list of all entries with their latest results, for pages that show it
+(e.g. the start page of a DPP service). Entries come in this order: the entry
+named with `--this-service`, then operator entries, then entries from our
+research, each by name.
+
+```json
+{
+  "generated_at": "2026-10-18T04:25:00Z",
+  "notice": "Results of automated checks only, from a research project ...",
+  "counting": "passed: active criteria with result passed or warning; ...",
+  "services": [
+    {
+      "id": "ownyourdata-dpp-service", "name": "OwnYourData DPP Service", "url": "https://dpp-service.ownyourdata.eu/",
+      "provider": { "name": "OwnYourData", "country": "AT" },
+      "this_service": true,
+      "entry": { "source": "operator", "as_of": "2026-10-18" },
+      "licence": { "text": "Apache-2.0", "spdx": ["Apache-2.0"] },
+      "linter": { "passports": [
+        { "product_id": "https://...", "label": "reference passport", "lint_url": "https://dpplint.ownyourdata.eu/?productId=...",
+          "summary_text": "5 of 5 automated checks passed", "passed": 5, "total": 5, "failed": 0, "warnings": 1,
+          "checked_at": "2026-10-18", "note": null } ] },
+      "validator": { "status": "checked", "mode": "full", "cadence": "daily",
+                     "details_url": "https://ownyourdata.github.io/dpp-validator/services/ownyourdata-dpp-service.html",
+                     "summary_text": "15 of 15 automated checks passed", "passed": 15, "total": 15, "failed": 0,
+                     "warnings": 0, "proposed_failed": 1, "checked_at": "2026-10-18" }
+    }
+  ]
+}
+```
+
+Counting, for `linter` and `validator` alike: `passed` are the active
+criteria with result `passed` or `warning`, `failed` those with result
+`failed`, `total` is `passed` + `failed`, and `warnings` says how many of the
+passed ones have a warning (they are included in `passed`). Skipped criteria
+are not counted. `summary_text` is the text of dpplint or dpp-validator; a page
+shows these numbers as "5 of 5 passed · 1 warning".
+
+- `linter.passports` is empty, with `linter.note` "no public example
+  passport", if the entry lists none. A passport not checked yet has
+  `note: "first check pending"`, one whose check failed the error in `note`;
+  both without numbers.
+- `validator.status` is `checked`, `pending` (no run yet) or, for an entry
+  with `check.mode: none`, its `check.reason`: `needs_credentials`,
+  `no_public_instance` or `no_en18222_paths`. `mode` is `full` or
+  `read-only`, `cadence` `daily` or `weekly`.
 
 ## Layout
 

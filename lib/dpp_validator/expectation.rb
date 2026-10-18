@@ -7,6 +7,8 @@ module DppValidator
   #    (application/json or a +json type) the body must also parse as JSON;
   #    this belongs to the content_type check. In http any JSON value is
   #    accepted; `single_object: true` (resolve) requires one JSON object.
+  #    A media type in `content_type_with_warning` satisfies content_type
+  #    with a warning instead of a failure.
   # 2. Only if both hold: `headers` (HeaderAssertion), `json` (JsonAssertion)
   #    and `body_equals_step`. Otherwise these give no message of their own.
   #
@@ -49,10 +51,11 @@ module DppValidator
 
     # earlier: responses of the earlier steps (index 0 = step 1), for body_equals_step.
     def messages(response, earlier: [])
+      @content_type_warning = nil
       first = status_and_content_type(response)
       return first if first.any?
 
-      header_messages(response) + json_messages(response) + body_messages(response, earlier)
+      [@content_type_warning].compact + header_messages(response) + json_messages(response) + body_messages(response, earlier)
     end
 
     private
@@ -64,18 +67,24 @@ module DppValidator
       end
       return out unless (type = @expect["content_type"])
 
-      expected = type.to_s.split(";").first.to_s.strip.downcase
-      if response.media_type != expected
-        actual = response.header("content-type")
-        out << Messages.error("Content-Type is #{actual.nil? || actual.empty? ? 'missing' : actual}, expected #{type}")
-      elsif json_media_type?(expected)
-        document = parse_json(response.body)
-        if document == :invalid then out << Messages.error("the body is not valid JSON")
-        elsif @single_object && !document.is_a?(Hash) then out << Messages.error("the body is not a single JSON object")
+      expected = media_type(type)
+      tolerated = Array(@expect["content_type_with_warning"]).map { |t| media_type(t) }
+      actual = response.header("content-type")
+      if response.media_type == expected || tolerated.include?(response.media_type)
+        if json_media_type?(response.media_type)
+          document = parse_json(response.body)
+          if document == :invalid then return out << Messages.error("the body is not valid JSON")
+          elsif @single_object && !document.is_a?(Hash) then return out << Messages.error("the body is not a single JSON object")
+          end
         end
+        @content_type_warning = response.media_type == expected ? nil : Messages.warning("Content-Type is #{actual}, expected #{type}")
+      else
+        out << Messages.error("Content-Type is #{actual.nil? || actual.empty? ? 'missing' : actual}, expected #{type}")
       end
       out
     end
+
+    def media_type(value) = value.to_s.split(";").first.to_s.strip.downcase
 
     def header_messages(response)
       Array(@expect["headers"]).flat_map do |assertion|

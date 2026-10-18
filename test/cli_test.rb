@@ -21,6 +21,8 @@ class CliTest < ValidatorTestCase
       service_file = File.join(dir, "local.yaml")
       File.write(service_file, YAML.dump(
         "id" => "local-test", "name" => "Local test", "operator" => { "name" => "Test" }, "contact" => "test@example.org",
+        "entry" => { "source" => "operator", "as_of" => "2026-10-18" }, "licence" => { "text" => "MIT", "spdx" => ["MIT"] },
+        "check" => { "mode" => "full-daily" },
         "api_base" => tls.url("/dpp/v1"), "features" => %w[fine-granular-api],
         "test_data" => { "productId" => PRODUCT_ID, "dppId" => DPP_ID, "elementIdPath" => "$.ProductIdentification.ModelIdentifier" },
         "credentials" => "none", "listed_since" => "2026-10-01"
@@ -51,6 +53,8 @@ class CliTest < ValidatorTestCase
       service_file = File.join(dir, "unlisted.yaml")
       File.write(service_file, YAML.dump(
         "id" => "unlisted-test", "name" => "Unlisted test", "operator" => { "name" => "Test" }, "contact" => "test@example.org",
+        "entry" => { "source" => "operator", "as_of" => "2026-10-18" }, "licence" => { "text" => "MIT", "spdx" => ["MIT"] },
+        "check" => { "mode" => "full-daily" },
         "api_base" => tls.url("/dpp/v1"), "features" => %w[fine-granular-api], "not_implemented" => %w[write-api historical-versions],
         "test_data" => { "productId" => PRODUCT_ID, "dppId" => DPP_ID, "elementIdPath" => "$.ProductIdentification.ModelIdentifier" },
         "credentials" => "none", "listed_since" => "2026-10-09"
@@ -65,6 +69,60 @@ class CliTest < ValidatorTestCase
       assert_equal "read-only", result["mode"]
       assert_equal %w[GET], tls.received.map(&:method).uniq
       assert_equal "not_implemented", result["criteria"].find { |c| c["id"] == "DPP-API-019" }["reason_code"]
+    end
+  end
+
+  test "run checks research entries read-only and refuses entries that are not checked" do
+    skip "no dpp-criteria checkout at #{CRITERIA_DIR}" unless CriteriaDir.available?
+    tls = server(protocols: %w[h2], &FakeDppService.handler(DPP_ID, PRODUCT_ID))
+    plain = plain_server { [301, { "Location" => "https://localhost/" }, ""] }
+    entries = {
+      "res" => CriteriaDir.research({ "mode" => "read-only-weekly" }, "api_base" => tls.url("/dpp/v1"),
+                                    "test_data" => { "productId" => PRODUCT_ID, "dppId" => DPP_ID }),
+      "none" => CriteriaDir.research({ "mode" => "none", "reason" => "no_public_instance" })
+    }
+    CriteriaDir.with(entries) do |dir|
+      output = File.join(dir, "res.json")
+      status, out, err = cli("run", "--service", "res", "--criteria", dir, "--output", output, config: config(http_port: plain.port))
+      assert_equal 0, status, err
+      assert_match(/^read-only run/, out)
+      assert_equal "read-only", JSON.parse(File.read(output))["mode"]
+      assert_equal %w[GET], tls.received.map(&:method).uniq
+      status, _out, err = cli("run", "--service", "none", "--criteria", dir)
+      assert_equal 2, status
+      assert_match(/none is not checked \(check.mode none, reason no_public_instance\)/, err)
+    end
+  end
+
+  test "services --cadence lists the entries whose service is run daily or weekly" do
+    skip "no dpp-criteria checkout at #{CRITERIA_DIR}" unless CriteriaDir.available?
+    entries = {
+      "op" => CriteriaDir.operator("https://api.example/v1"),
+      "res" => CriteriaDir.research({ "mode" => "read-only-weekly" }, "api_base" => "https://res.example/v1"),
+      "none" => CriteriaDir.research({ "mode" => "none", "reason" => "no_public_instance" })
+    }
+    CriteriaDir.with(entries) do |dir|
+      assert_equal [0, "op\n"], cli("services", "--criteria", dir, "--cadence", "daily").first(2)
+      assert_equal [0, "res\n"], cli("services", "--criteria", dir, "--cadence", "weekly").first(2)
+      assert_equal [0, "none\nop\nres\n"], cli("services", "--criteria", dir).first(2)
+      assert_equal 2, cli("services", "--criteria", dir, "--cadence", "hourly").first
+    end
+  end
+
+  test "site writes the pages and available-services.json from the entries" do
+    skip "no dpp-criteria checkout at #{CRITERIA_DIR}" unless CriteriaDir.available?
+    entries = { "none" => CriteriaDir.research({ "mode" => "none", "reason" => "no_public_instance" }) }
+    CriteriaDir.with(entries) do |dir|
+      results = File.join(dir, "results")
+      FileUtils.mkdir_p(results)
+      status, out, err = cli("site", "--criteria", dir, "--results", results, "--output", File.join(dir, "site"),
+                             "--this-service", "none", "--site-url", "https://pages.example/x/")
+      assert_equal 0, status, err
+      assert_match(/1 service\(s\) written/, out)
+      data = JSON.parse(File.read(File.join(dir, "site", "available-services.json")))
+      assert_equal true, data["services"].first["this_service"]
+      assert_equal({ "status" => "no_public_instance" }, data["services"].first["validator"])
+      assert File.file?(File.join(dir, "site", "services", "none.html"))
     end
   end
 
