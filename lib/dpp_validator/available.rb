@@ -13,8 +13,8 @@ module DppValidator
   class Available
     NOTICE = "Results of automated checks only, from a research project that shares what we currently know. " \
              "The list is not complete and no legal assessment; the results are no certification and establish no " \
-             "presumption of conformity. Entries with entry.source research come from our own research and may be " \
-             "incomplete or out of date.".freeze
+             "presumption of conformity. Entries from our research come from our own research and may be incomplete " \
+             "or out of date.".freeze
     COUNTING = "passed: active criteria with result passed or warning; failed: result failed; total: passed + failed; " \
                "warnings: passed with a warning, included in passed; skipped criteria are not counted".freeze
 
