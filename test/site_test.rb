@@ -50,8 +50,14 @@ class SiteTest < ValidatorTestCase
     [count, out]
   end
 
-  def assert_page_rules(html)
+  def assert_page_rules(html, up = "")
     refute_match(/conformant|certified/i, html.sub(DppValidator::Report::NOTICE, ""))
+    header = html[%r{<header>.*</header>}m]
+    assert header, "header"
+    assert html.index("</header>") < html.index("<main"), "header outside main, so its line spans the window"
+    assert_includes header, %(<a class="brand" href="#{up}index.html"><img class="mark" src="#{up}oyd-mark.svg" alt="" width="15" height="28">DPP Service Validator <span>&middot; OwnYourData</span></a>)
+    assert_includes header, %(<a href="https://dpp-service.ownyourdata.eu/">DPP Service</a>)
+    assert_includes header, %(<a href="https://github.com/OwnYourData/dpp-validator">GitHub</a>)
     refute_match(%r{<script\b|src="(https?:)?//}i, html, "no external resources")
     html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
     footer = html[%r{<footer>.*</footer>}m]
@@ -105,7 +111,7 @@ class SiteTest < ValidatorTestCase
       assert_includes index, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
 
       a = File.read(File.join(out, "services", "svc-a.html"), encoding: "UTF-8")
-      assert_page_rules(a)
+      assert_page_rules(a, "../")
       assert_includes a, "Op &lt;&amp;&gt; · AT"
       assert_includes a, "1 of 2 automated checks passed"
       assert_includes a, "Proposed criteria, not counted: 0 of 0 automated checks passed"
@@ -124,7 +130,7 @@ class SiteTest < ValidatorTestCase
       assert a.index("DPP-API-013") < a.index("DPP-OPS-006"), "proposed after active"
 
       b = File.read(File.join(out, "services", "svc-b.html"), encoding: "UTF-8")
-      assert_page_rules(b)
+      assert_page_rules(b, "../")
       assert_includes b, "<strong>Entry from our research</strong> &middot; information as of 2026-10-18"
       assert_includes b, "Demo &lt;only&gt;."
       assert_includes b, DppValidator::Site::RESEARCH_NOTICE
