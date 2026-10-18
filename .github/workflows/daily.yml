@@ -1,13 +1,21 @@
 name: daily
 
-# Runs the criteria of the pinned dpp-criteria commit (DPP_CRITERIA_REF) against
-# every listed service, keeps the JSON results on the branch "results"
-# (runs/<date>/ and latest/) and publishes the result pages on GitHub Pages.
+# Runs the criteria of the pinned dpp-criteria commit (DPP_CRITERIA_REF):
+# every day against the operator entries (in full) and their example
+# passports (dpplint), on Mondays also against the entries from our research
+# (read-only) and their example passports. Keeps the JSON results on the
+# branch "results" (runs/<date>/ and latest/) and publishes the result pages
+# and available-services.json on GitHub Pages.
 
 on:
   schedule:
     - cron: "17 4 * * *"
   workflow_dispatch:
+    inputs:
+      weekly:
+        description: "Also run the weekly read-only checks of the entries from our research"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -32,13 +40,22 @@ jobs:
       - name: Test suite
         run: docker run --rm oydeu/dpp-validator:latest test
 
-      - name: Run all listed services
+      - name: Daily checks of the operator entries
         run: |
           mkdir -p out
-          for id in $(docker run --rm oydeu/dpp-validator:latest services); do
-            docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest run --service "$id" --output "out/$id.json"
-          done
-          ls -l out
+          docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
+          ls -lR out
+
+      - name: Weekly read-only checks of the entries from our research (Mondays)
+        if: github.event_name == 'workflow_dispatch' && inputs.weekly || github.event_name == 'schedule'
+        continue-on-error: true
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(date -u +%u)" != "1" ]; then
+            echo "not Monday, weekly checks skipped"
+            exit 0
+          fi
+          docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence weekly --output out
+          ls -lR out
 
       - name: Keep the results on the branch results
         run: |
@@ -50,9 +67,13 @@ jobs:
           else
             git worktree add --orphan -b results history
           fi
-          mkdir -p "history/runs/$date" history/latest
+          mkdir -p "history/runs/$date/linter" history/latest/linter
           cp out/*.json "history/runs/$date/"
           cp out/*.json history/latest/
+          if ls out/linter/*.json >/dev/null 2>&1; then
+            cp out/linter/*.json "history/runs/$date/linter/"
+            cp out/linter/*.json history/latest/linter/
+          fi
           cd history
           git add -A
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
@@ -63,7 +84,7 @@ jobs:
         run: |
           mkdir -p site
           docker run --rm -v "$PWD/history:/app/history" -v "$PWD/site:/app/site" oydeu/dpp-validator:latest \
-            site --results history/latest --output site
+            site --results history/latest --output site --this-service ownyourdata-dpp-service
 
       - uses: actions/upload-pages-artifact@v5
         with:

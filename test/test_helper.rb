@@ -2,6 +2,7 @@ require "minitest/autorun"
 require_relative "../lib/dpp_validator"
 require_relative "support/test_certs"
 require_relative "support/test_server"
+require_relative "support/criteria_dir"
 
 # Base class for the tests copied from dpplint: Minitest::Test with the
 # `test "name" do ... end` DSL of ActiveSupport::TestCase.

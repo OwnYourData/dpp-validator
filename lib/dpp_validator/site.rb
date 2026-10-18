@@ -2,8 +2,17 @@ require "cgi"
 require "fileutils"
 
 module DppValidator
-  # Static result pages for GitHub Pages: index.html with the latest result of
-  # every listed service, and the JSON results next to it (results/<id>.json).
+  # Static result pages for GitHub Pages:
+  #
+  # - index.html: overview of every entry of services/ with its latest
+  #   results (dpplint for the example passports, dpp-validator for the
+  #   service);
+  # - services/<id>.html: one page per entry with the details of the entry,
+  #   the criteria of the latest validator run and the dpplint results of its
+  #   example passports;
+  # - results/<id>.json and linter/<id>.json: the JSON results;
+  # - available-services.json (Available).
+  #
   # The mark shown next to the title and used as icon (assets/oyd-mark.svg) is
   # copied next to index.html. The footer spans the full width of the window
   # and names the operator, the imprint and the privacy policy of OwnYourData
@@ -12,10 +21,12 @@ module DppValidator
   #
   # Wording follows CRITERIA-FORMAT.md ("Results wording"): "N of M automated
   # checks passed" for active criteria only, proposed criteria marked as not
-  # counted, and the notice that results are no certification. The page has
-  # no external resources.
+  # counted, entries from our research marked as such, and the notice that
+  # results are no certification. The pages have no external resources.
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
+    SERVICES_README = "#{CRITERIA_REPO}/blob/main/services/README.md".freeze
+    DEFAULT_SITE_URL = "https://ownyourdata.github.io/dpp-validator/".freeze
     MARK = File.expand_path("../../assets/oyd-mark.svg", __dir__)
     OPERATOR_URL = "https://www.ownyourdata.eu/en/".freeze
     IMPRINT_URL = "https://www.ownyourdata.eu/en/imprint/".freeze
@@ -26,31 +37,77 @@ module DppValidator
       "needs_credentials" => "needs credentials", "not_sent" => "not sent (read-only run)",
       "unreachable" => "unreachable", "not_evaluated" => "not evaluated"
     }.freeze
+    NOT_CHECKED = {
+      "needs_credentials" => "not checked: the EN 18222 paths answer only with credentials",
+      "no_public_instance" => "not checked: no public instance",
+      "no_en18222_paths" => "not checked: no EN 18222 paths found"
+    }.freeze
+    SOURCE_LABELS = { "operator" => "Entry maintained by the operator", "research" => "Entry from our research" }.freeze
+    RESEARCH_NOTICE = "This list is part of a research project and shares what we currently know. It makes no claim to be " \
+                      "complete and is not a legal assessment. Entries from our research come from public information and " \
+                      "may be incomplete or out of date.".freeze
 
-    def initialize(results_dir:, output_dir:)
+    # services: entries of services/ ([Service]); without them the entries are
+    # taken from the validator results.
+    def initialize(results_dir:, output_dir:, services: nil, site_url: DEFAULT_SITE_URL, this_service: nil, now: Time.now.utc)
       @results_dir = results_dir
       @output_dir = output_dir
+      @services = services
+      @site_url = site_url
+      @this_service = this_service
+      @now = now
     end
 
-    # Writes the site; returns the number of services on it.
+    # Writes the site; returns the number of entries on it.
     def build
-      results = Dir[File.join(@results_dir, "*.json")].sort.map { |f| JSON.parse(File.read(f)) }
-      raise Error, "no JSON results in #{@results_dir}" if results.empty?
+      results = load(File.join(@results_dir, "*.json")).to_h { |r| [r.dig("service", "id"), r] }
+      lints = load(File.join(@results_dir, "linter", "*.json")).to_h { |l| [l["service_id"], l] }
+      services = @services || results.values.map { |r| service_from_result(r["service"]) }
+      raise Error, "no service entries and no JSON results in #{@results_dir}" if services.empty?
 
-      FileUtils.mkdir_p(File.join(@output_dir, "results"))
-      results.each do |r|
-        File.write(File.join(@output_dir, "results", "#{r.dig('service', 'id')}.json"), "#{JSON.pretty_generate(r)}\n")
-      end
+      ids = services.map(&:id)
+      results.select! { |id, _| ids.include?(id) }
+      lints.select! { |id, _| ids.include?(id) }
+      available = Available.new(services: services, results: results, lints: lints, site_url: @site_url,
+                                this_service: @this_service, now: @now)
+      write_json("results", results)
+      write_json("linter", lints)
+      FileUtils.mkdir_p(File.join(@output_dir, "services"))
       FileUtils.cp(MARK, File.join(@output_dir, "oyd-mark.svg"))
-      File.write(File.join(@output_dir, "index.html"), page(results))
-      results.size
+      ordered = available.ordered
+      File.write(File.join(@output_dir, "index.html"), page("DPP service checks", index_body(ordered, results, lints), depth: 0))
+      ordered.each do |s|
+        File.write(File.join(@output_dir, "services", "#{s.id}.html"),
+                   page("#{s.name} – DPP service checks", detail_body(s, results[s.id], lints[s.id]), depth: 1))
+      end
+      File.write(File.join(@output_dir, "available-services.json"), "#{available.to_json}\n")
+      services.size
     end
 
     private
 
+    def load(pattern) = Dir[pattern].sort.map { |f| JSON.parse(File.read(f, encoding: "UTF-8")) }
+
+    # An entry rebuilt from the service part of a validator result.
+    def service_from_result(s)
+      operator = { "name" => s["operator"], "url" => s["operator_url"], "country" => s["country"] }.compact
+      Service.new(s.merge("operator" => operator))
+    end
+
+    def write_json(dir, by_id)
+      FileUtils.mkdir_p(File.join(@output_dir, dir))
+      by_id.each { |id, data| File.write(File.join(@output_dir, dir, "#{id}.json"), "#{JSON.pretty_generate(data)}\n") }
+    end
+
     def h(text) = CGI.escapeHTML(text.to_s)
 
     def reason_label(code) = REASON_LABELS.fetch(code.to_s, code.to_s)
+
+    # "5 of 5 passed · 1 warning"
+    def short(passed, total, warnings)
+      text = "#{passed} of #{total} passed"
+      warnings.to_i.positive? ? "#{text} · #{warnings} warning#{'s' if warnings.to_i > 1}" : text
+    end
 
     # "3 skipped: 2 not applicable, 1 needs credentials"; older results
     # without skipped_by_reason give "3 skipped".
@@ -60,15 +117,173 @@ module DppValidator
       by_reason.empty? ? text : "#{text}: #{by_reason.map { |code, n| "#{n} #{reason_label(code)}" }.join(', ')}"
     end
 
-    def page(results)
+    def link(url, text) = url.to_s.empty? ? h(text) : %(<a href="#{h(url)}">#{h(text)}</a>)
+
+    def operator_text(s)
+      [s.data.dig("operator", "name"), s.data.dig("operator", "country")].compact.join(" · ")
+    end
+
+    def entry_text(s)
+      s.research? ? "#{SOURCE_LABELS['research']} · as of #{s.as_of}" : SOURCE_LABELS["operator"]
+    end
+
+    def check_text(s, result)
+      return NOT_CHECKED.fetch(s.check_reason.to_s, "not checked") unless s.checked?
+
+      plan = s.read_only? ? "read-only, weekly" : "full, daily"
+      return "first run pending · #{plan}" unless result
+
+      summary = result["summary"] || {}
+      passed = summary["passed"].to_i
+      "#{short(passed, passed + summary['failed'].to_i, summary['warnings'])} · #{plan}"
+    end
+
+    def passport_texts(s, lint)
+      return [%(<span class="muted">no public example passport</span>)] if s.example_passports.empty?
+
+      checked = Array(lint&.dig("passports")).to_h { |p| [p["product_id"], p] }
+      s.example_passports.map do |p|
+        r = checked[p["product_id"]]
+        status = if r.nil? then %(<span class="muted">first check pending</span>)
+                 elsif r["status"] != "checked" then %(<span class="muted">#{h(r['error'])}</span>)
+                 else h(short(r.dig("summary", "passed"), r.dig("summary", "total"), r.dig("summary", "warnings")))
+                 end
+        url = r&.dig("lint_url") || Linter.lint_url(p["product_id"])
+        %(#{link(url, p['label'])}: #{status})
+      end
+    end
+
+    def index_body(services, results, lints)
+      rows = services.map do |s|
+        <<~HTML.chomp
+          <tr><td><a href="services/#{h(s.id)}.html">#{h(s.name)}</a><br><span class="muted">#{h(operator_text(s))}</span></td>
+          <td>#{h(entry_text(s))}</td>
+          <td>#{h(s.licence['text'])}</td>
+          <td>#{passport_texts(s, lints[s.id]).join('<br>')}</td>
+          <td>#{h(check_text(s, results[s.id]))}</td></tr>
+        HTML
+      end
+      <<~HTML
+        <h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>
+        <p>DPP services that implement or relate to EN 18222, with automated checks against the criteria of
+        <a href="#{CRITERIA_REPO}">dpp-criteria</a>: example passports are checked with
+        <a href="https://dpplint.ownyourdata.eu">dpplint</a>, the services with
+        <a href="https://github.com/OwnYourData/dpp-validator">dpp-validator</a>. Entries maintained by the operator are
+        checked in full every day, entries from our research read-only once a week.
+        Only criteria with status <em>active</em> count in &ldquo;N of M&rdquo;; warnings are included in the passed ones.</p>
+        <p class="notice">#{h(RESEARCH_NOTICE)} Operators can correct or take over an entry, or ask for its removal:
+        <a href="#{SERVICES_README}">how to add or correct a service</a>. #{h(Report::NOTICE)}</p>
+        <div class="scroll"><table>
+        <thead><tr><th>Service</th><th>Entry</th><th>Licence</th><th>Example passports &middot; dpplint</th><th>Service checks &middot; dpp-validator</th></tr></thead>
+        <tbody>
+        #{rows.join("\n")}
+        </tbody></table></div>
+        <p class="muted">Machine-readable: <a href="available-services.json">available-services.json</a>.</p>
+      HTML
+    end
+
+    def detail_body(s, result, lint)
+      <<~HTML
+        <p><a href="../index.html">All services</a></p>
+        <h1 class="brand"><img class="mark" src="../oyd-mark.svg" alt="" width="15" height="28">#{h(s.name)}</h1>
+        <p><strong>#{h(SOURCE_LABELS.fetch(s.source))}</strong>#{s.research? ? " &middot; information as of #{h(s.as_of)}" : ''}</p>
+        <dl>
+          <dt>Operator</dt><dd>#{link(s.data.dig('operator', 'url'), operator_text(s))}</dd>
+          #{s.url ? %(<dt>Web page</dt><dd>#{link(s.url, s.url)}</dd>) : ''}
+          #{s.data['source_code'] ? %(<dt>Source code</dt><dd>#{link(s.data['source_code'], s.data['source_code'])}</dd>) : ''}
+          <dt>Licence</dt><dd>#{h(s.licence['text'])}#{Array(s.licence['spdx']).any? ? %( <span class="muted">(SPDX: #{h(s.licence['spdx'].join(', '))})</span>) : ''}</dd>
+          #{s.api_base ? %(<dt>API base</dt><dd>#{h(s.api_base)}</dd>) : ''}
+          #{s.data['contact'] ? %(<dt>Contact</dt><dd><a href="mailto:#{h(s.data['contact'])}">#{h(s.data['contact'])}</a></dd>) : ''}
+          <dt>Checks</dt><dd>#{h(check_text(s, result))}</dd>
+          <dt>Listed since</dt><dd>#{h(s.data['listed_since'].to_s.empty? ? '–' : s.data['listed_since'])}</dd>
+          <dt>Entry</dt><dd><a href="#{CRITERIA_REPO}/blob/main/services/#{h(s.id)}.yaml">services/#{h(s.id)}.yaml</a></dd>
+        </dl>
+        #{s.notes ? %(<p>#{h(s.notes)}</p>) : ''}
+        #{s.research? ? %(<p class="notice">#{h(RESEARCH_NOTICE)} The operator can correct or take over this entry, or ask for its removal: <a href="#{SERVICES_README}">how to add or correct a service</a>.</p>) : ''}
+        <h2>Example passports &middot; dpplint</h2>
+        #{lint_section(s, lint)}
+        <h2>Service checks &middot; dpp-validator</h2>
+        #{validator_section(s, result)}
+        <p class="notice">#{h(Report::NOTICE)}</p>
+      HTML
+    end
+
+    def lint_section(s, lint)
+      return %(<p class="muted">No public example passport.</p>) if s.example_passports.empty?
+
+      checked = Array(lint&.dig("passports")).to_h { |p| [p["product_id"], p] }
+      s.example_passports.map do |p|
+        r = checked[p["product_id"]]
+        url = r&.dig("lint_url") || Linter.lint_url(p["product_id"])
+        head = %(<h3>#{h(p['label'])}</h3><p class="muted">#{h(p['product_id'])} &middot; <a href="#{h(url)}">open in dpplint</a></p>)
+        next "#{head}<p class=\"muted\">First check pending.</p>" unless r
+        next "#{head}<p class=\"muted\">#{h(r['error'])}</p>" unless r["status"] == "checked"
+
+        sm = r["summary"]
+        counted = Array(r["criteria"]).select { |c| c["status"] == "active" }
+        <<~HTML.chomp
+          #{head}
+          <div class="summary"><strong>#{h(sm['text'])}</strong> (#{h(sm['failed'])} failed, #{h(sm['warnings'])} with warnings, #{h(sm['skipped'])} skipped) &middot; checked #{h(lint['checked_at'].to_s[0, 10])}
+            <div class="notice">Proposed criteria failed, not counted: #{h(sm['proposed_failed'])}</div></div>
+          <div class="scroll"><table>
+          <thead><tr><th>Criterion</th><th>Title</th><th>Result</th></tr></thead>
+          <tbody>
+          #{counted.sort_by { |c| [ORDER.fetch(c['result'], 9), c['id']] }.map { |c| lint_row(c) }.join("\n")}
+          </tbody></table></div>
+        HTML
+      end.join("\n")
+    end
+
+    def lint_row(c)
+      id = c["description_url"] ? link(c["description_url"], c["id"]) : h(c["id"])
+      reason = c["reason_code"] ? %(<br><span class="muted">#{h(reason_label(c['reason_code']))}</span>) : ""
+      %(<tr><td class="id">#{id}</td><td>#{h(c['title'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{reason}</td></tr>)
+    end
+
+    def validator_section(s, r)
+      return %(<p class="muted">#{h(check_text(s, nil).capitalize)}.</p>) unless s.checked? && r
+
+      commit = r.dig("dpp_criteria", "commit").to_s
+      summary = r["summary"] || {}
+      proposed = summary["proposed_not_counted"] || {}
+      <<~HTML
+        <p class="muted">Run #{h(r['run_at'])} &middot; dpp-criteria <a href="#{CRITERIA_REPO}/tree/#{h(commit)}">#{h(commit[0, 7])}</a> &middot; <a href="../results/#{h(s.id)}.json">JSON</a></p>
+        <div class="summary"><strong>#{h(summary['text'])}</strong>
+          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(skipped_text(summary))})#{r['mode'] == 'read-only' ? ' &middot; read-only run' : ''}
+          <div class="notice">Proposed criteria, not counted: #{h(proposed['text'])}</div></div>
+        <div class="scroll"><table>
+        <thead><tr><th>Criterion</th><th>Requirement and findings</th><th>Level</th><th>Result</th></tr></thead>
+        <tbody>
+        #{rows(r['criteria'] || [], commit)}
+        </tbody></table></div>
+      HTML
+    end
+
+    def rows(criteria, commit)
+      criteria.sort_by { |c| [c["counted"] || c["status"] == "active" ? 0 : 1, ORDER.fetch(c["result"], 9), c["id"]] }.map do |c|
+        notes = Array(c["messages"]).map { |m| "<li>#{h(m['severity'])}: #{h(m['message'])}</li>" }
+        notes << "<li>#{h(c['reason'])}</li>" if c["reason"]
+        marker = c["status"] == "active" ? "" : %( <span class="muted">(#{h(c['status'])}, not counted)</span>)
+        link = c["description_url"] ||
+               "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{c['id'].to_s.split('-')[1].to_s.downcase}/#{c['id']}.yaml"
+        <<~HTML.chomp
+          <tr><td class="id"><a href="#{h(link)}" title="Description of the criterion">#{h(c['id'])}</a> v#{h(c['version'])}</td>
+          <td>#{h(c['title'])}#{marker}#{notes.empty? ? '' : %(<ul class="msg">#{notes.join}</ul>)}</td>
+          <td>#{h(c['level'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{c['reason_code'] ? %(<br><span class="muted">#{h(reason_label(c['reason_code']))}</span>) : ''}</td></tr>
+        HTML
+      end.join("\n")
+    end
+
+    def page(title, body, depth:)
+      up = "../" * depth
       <<~HTML
         <!doctype html>
         <html lang="en">
         <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>DPP service checks</title>
-        <link rel="icon" href="oyd-mark.svg" type="image/svg+xml">
+        <title>#{h(title)}</title>
+        <link rel="icon" href="#{up}oyd-mark.svg" type="image/svg+xml">
         <style>
           :root { --fg: #1d1d1f; --muted: #5f6368; --line: #d9dce1; --panel: #f6f7f9; --bg: #fff;
                   --passed: #1e7a3c; --warning: #8a5a00; --failed: #b3261e; --skipped: #5f6368; }
@@ -83,6 +298,7 @@ module DppValidator
           .brand { display: flex; align-items: center; gap: 9px; }
           .brand .mark { width: 15px; height: auto; display: block; }
           h2 { font-size: 1.25rem; margin: 32px 0 4px; }
+          h3 { font-size: 1.05rem; margin: 20px 0 2px; }
           a { color: inherit; }
           .muted, .notice { color: var(--muted); }
           .notice { font-size: .9rem; }
@@ -108,14 +324,7 @@ module DppValidator
         </head>
         <body>
         <main class="wrap">
-        <h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>
-        <p>Automated checks of Digital Product Passport services against the criteria of
-        <a href="#{CRITERIA_REPO}">dpp-criteria</a>, run daily by
-        <a href="https://github.com/OwnYourData/dpp-validator">dpp-validator</a>.
-        Only criteria with status <em>active</em> count in &ldquo;N of M&rdquo;; proposed criteria are shown but not counted.
-        Passport content is checked by <a href="https://dpplint.ownyourdata.eu">dpplint</a>.</p>
-        <p class="notice">#{h(Report::NOTICE)}</p>
-        #{results.map { |r| service_section(r) }.join("\n")}
+        #{body}
         </main>
         <footer>
         <div class="wrap">
@@ -127,48 +336,6 @@ module DppValidator
         </body>
         </html>
       HTML
-    end
-
-    def service_section(r)
-      s = r["service"] || {}
-      commit = r.dig("dpp_criteria", "commit").to_s
-      summary = r["summary"] || {}
-      proposed = summary["proposed_not_counted"] || {}
-      <<~HTML
-        <section id="#{h(s['id'])}">
-        <h2>#{h(s['name'])}</h2>
-        <dl>
-          <dt>Operator</dt><dd>#{s['operator_url'] ? %(<a href="#{h(s['operator_url'])}">#{h(s['operator'])}</a>) : h(s['operator'])}</dd>
-          <dt>API base</dt><dd>#{h(s['api_base'])}</dd>
-          <dt>Contact</dt><dd>#{s['contact'] ? %(<a href="mailto:#{h(s['contact'])}">#{h(s['contact'])}</a>) : "&ndash;"}</dd>
-          <dt>Listed since</dt><dd>#{h(s['listed_since'].to_s.empty? ? '–' : s['listed_since'])}</dd>
-          <dt>Run</dt><dd>#{h(r['run_at'])} &middot; dpp-criteria <a href="#{CRITERIA_REPO}/tree/#{h(commit)}">#{h(commit[0, 7])}</a> &middot; <a href="results/#{h(s['id'])}.json">JSON</a></dd>
-        </dl>
-        <div class="summary"><strong>#{h(summary['text'])}</strong>
-          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(skipped_text(summary))})#{r['mode'] == 'read-only' ? ' &middot; read-only run' : ''}
-          <div class="notice">Proposed criteria, not counted: #{h(proposed['text'])}</div></div>
-        <div class="scroll"><table>
-        <thead><tr><th>Criterion</th><th>Requirement and findings</th><th>Level</th><th>Result</th></tr></thead>
-        <tbody>
-        #{rows(r['criteria'] || [], commit)}
-        </tbody></table></div>
-        </section>
-      HTML
-    end
-
-    def rows(criteria, commit)
-      criteria.sort_by { |c| [c["counted"] || c["status"] == "active" ? 0 : 1, ORDER.fetch(c["result"], 9), c["id"]] }.map do |c|
-        notes = Array(c["messages"]).map { |m| "<li>#{h(m['severity'])}: #{h(m['message'])}</li>" }
-        notes << "<li>#{h(c['reason'])}</li>" if c["reason"]
-        marker = c["status"] == "active" ? "" : %( <span class="muted">(#{h(c['status'])}, not counted)</span>)
-        link = c["description_url"] ||
-               "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{c['id'].to_s.split('-')[1].to_s.downcase}/#{c['id']}.yaml"
-        <<~HTML.chomp
-          <tr><td class="id"><a href="#{h(link)}" title="Description of the criterion">#{h(c['id'])}</a> v#{h(c['version'])}</td>
-          <td>#{h(c['title'])}#{marker}#{notes.empty? ? '' : %(<ul class="msg">#{notes.join}</ul>)}</td>
-          <td>#{h(c['level'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{c['reason_code'] ? %(<br><span class="muted">#{h(reason_label(c['reason_code']))}</span>) : ''}</td></tr>
-        HTML
-      end.join("\n")
     end
   end
 end

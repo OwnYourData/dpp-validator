@@ -16,6 +16,23 @@ class HttpCheckTest < ValidatorTestCase
     assert_equal "HTTP/2", s.received.first.protocol
   end
 
+  test "a media type in content_type_with_warning gives a warning and the other assertions still apply" do
+    s = server { [200, { "Content-Type" => "application/ld+json; charset=utf-8" }, JSON.generate(PASSPORT)] }
+    expect = { "status" => [200], "content_type" => "application/json", "content_type_with_warning" => ["application/ld+json"],
+               "json" => [{ "path" => "$.dppStatus", "equals" => "Inactive" }] }
+    outcome = run_check(check(get("/x", expect)), base(s))
+    assert_result "failed", outcome
+    assert_equal ["warning: step 1 (GET /x): Content-Type is application/ld+json; charset=utf-8, expected application/json",
+                  "error: step 1 (GET /x): $.dppStatus: no selected value equals \"Inactive\""].first, messages_text(outcome).first
+    assert_equal 2, outcome.messages.size
+    outcome = run_check(check(get("/x", expect.merge("json" => []))), base(s))
+    assert_result "warning", outcome
+    s2 = server { [200, { "Content-Type" => "application/ld+json" }, "not json"] }
+    outcome = run_check(check(get("/x", expect.merge("json" => []))), base(s2))
+    assert_result "failed", outcome
+    assert_equal ["error: step 1 (GET /x): the body is not valid JSON"], messages_text(outcome)
+  end
+
   test "wrong status fails with the step named" do
     s = server { json(500, { "error" => "x" }) }
     outcome = run_check(check(get("/dpps/{randomId}", { "status" => [404] })), base(s))

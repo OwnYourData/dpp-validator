@@ -2,16 +2,17 @@ require_relative "test_helper"
 require "tmpdir"
 
 class SiteTest < ValidatorTestCase
-  def result(id, name, criteria)
+  def result(id, name, criteria, mode: "full")
     {
       "notice" => DppValidator::Report::NOTICE,
       "service" => { "id" => id, "name" => name, "operator" => "Op <&>", "operator_url" => "https://op.example",
                      "contact" => "office@op.example", "api_base" => "https://api.example/v1", "listed_since" => "2026-10-08" },
       "run_at" => "2026-10-08T12:00:00Z",
+      "mode" => mode,
       "dpp_criteria" => { "commit" => "c5a0a5ce389ac662ae7612a1bc50d520c09991d9" },
       "summary" => { "text" => "1 of 2 automated checks passed", "passed" => 1, "failed" => 1, "warnings" => 0, "skipped" => 1,
                      "skipped_by_reason" => { "not_implemented" => 1 },
-                     "proposed_not_counted" => { "text" => "0 of 0 automated checks passed" } },
+                     "proposed_not_counted" => { "text" => "0 of 0 automated checks passed", "failed" => 0 } },
       "criteria" => criteria
     }
   end
@@ -21,58 +22,137 @@ class SiteTest < ValidatorTestCase
       "messages" => [], "counted" => status == "active" && result != "skipped" }.merge(extra.transform_keys(&:to_s))
   end
 
-  test "writes index.html with one section per service and copies the JSON results" do
+  def entry(id, name, source: "operator", check: { "mode" => "full-daily" }, **extra)
+    data = { "id" => id, "name" => name, "operator" => { "name" => "Op <&>", "url" => "https://op.example", "country" => "AT" },
+             "entry" => { "source" => source, "as_of" => "2026-10-18" }, "licence" => { "text" => "MIT", "spdx" => ["MIT"] },
+             "check" => check, "listed_since" => "2026-10-08" }
+    data.merge!("contact" => "office@op.example", "api_base" => "https://api.example/v1") if source == "operator"
+    DppValidator::Service.new(data.merge(extra.transform_keys(&:to_s)))
+  end
+
+  def lint(id, product_id)
+    { "service_id" => id, "checked_at" => "2026-10-18T04:20:00Z", "dpplint" => "https://dpplint.example",
+      "passports" => [{ "product_id" => product_id, "label" => "demo passport", "lint_url" => "https://dpplint.example/?productId=x",
+                        "status" => "checked", "dpp_criteria" => "c685613",
+                        "summary" => { "text" => "3 of 4 automated checks passed", "passed" => 3, "failed" => 1, "total" => 4,
+                                       "warnings" => 1, "skipped" => 2, "proposed_failed" => 0 },
+                        "criteria" => [{ "id" => "DPP-ID-001", "title" => "Resolves", "status" => "active", "result" => "failed" },
+                                       { "id" => "DPP-DAT-016", "title" => "HTML", "status" => "active", "result" => "warning" }] }] }
+  end
+
+  def build(dir, services:, results: {}, lints: {}, **options)
+    input = File.join(dir, "in")
+    FileUtils.mkdir_p(File.join(input, "linter"))
+    results.each { |id, r| File.write(File.join(input, "#{id}.json"), JSON.generate(r)) }
+    lints.each { |id, l| File.write(File.join(input, "linter", "#{id}.json"), JSON.generate(l)) }
+    out = File.join(dir, "site")
+    count = DppValidator::Site.new(results_dir: input, output_dir: out, services: services, now: NOW, **options).build
+    [count, out]
+  end
+
+  def assert_page_rules(html)
+    refute_match(/conformant|certified/i, html.sub(DppValidator::Report::NOTICE, ""))
+    refute_match(%r{<script\b|src="(https?:)?//}i, html, "no external resources")
+    html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
+    footer = html[%r{<footer>.*</footer>}m]
+    assert footer, "footer"
+    assert html.index("</main>") < html.index("<footer>"), "footer outside main, so its line spans the window"
+    refute_match(/body \{[^}]*max-width/, html, "body is not limited in width")
+    assert_includes footer, %(Operated by <a href="https://www.ownyourdata.eu/en/">OwnYourData</a>)
+    assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/imprint/">Imprint</a>)
+    assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/privacy-policy/">Privacy</a>)
+    assert_includes footer, %(<div class="funding">#{DppValidator::Funding.html}</div>)
+    assert_equal 1, html.scan("917177").size
+  end
+
+  test "writes an overview, one detail page per entry and the JSON results" do
     Dir.mktmpdir do |dir|
-      results = File.join(dir, "in")
-      FileUtils.mkdir_p(results)
-      File.write(File.join(results, "a.json"), JSON.generate(result("svc-a", "Service <A>", [
-        criterion("DPP-DEX-006", "active", "failed", messages: [{ "severity" => "error", "message" => "HTTP/1.1 not rejected" }]),
-        criterion("DPP-API-013", "active", "passed",
-                  description_url: "https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013"),
-        criterion("DPP-OPS-006", "proposed", "skipped", reason: "self-declared", reason_code: "not_evaluated"),
-        criterion("DPP-API-019", "active", "skipped", reason: "the service lists historical-versions as not implemented",
-                  reason_code: "not_implemented")
-      ])))
-      File.write(File.join(results, "b.json"), JSON.generate(result("svc-b", "Service B", [criterion("DPP-API-013", "active", "passed")])))
-      out = File.join(dir, "site")
-      assert_equal 2, DppValidator::Site.new(results_dir: results, output_dir: out).build
-      html = File.read(File.join(out, "index.html"))
-      assert_includes html, %(<section id="svc-a">)
-      assert_includes html, %(<section id="svc-b">)
-      assert_includes html, "Service &lt;A&gt;"
-      assert_includes html, "Op &lt;&amp;&gt;"
-      assert_includes html, "1 of 2 automated checks passed"
-      assert_includes html, "Proposed criteria, not counted: 0 of 0 automated checks passed"
-      assert_includes html, "(proposed, not counted)"
-      assert_includes html, "error: HTTP/1.1 not rejected"
-      assert_includes html, "1 skipped: 1 not implemented"
-      assert_includes html, %(<span class="muted">not evaluated</span>)
-      assert_includes html, "mailto:office@op.example"
-      assert_includes html, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/dex/DPP-DEX-006.yaml"
-      assert_includes html, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013")
-      assert_includes html, DppValidator::Report::NOTICE
-      refute_match(/conformant|certified/i, html.sub(DppValidator::Report::NOTICE, ""))
-      refute_match(%r{<script\b|src="(https?:)?//}i, html, "no external resources")
-      html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
-      assert_includes html, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
-      assert_includes html, %(<h1 class="brand"><img class="mark" src="oyd-mark.svg" alt="" width="15" height="28">DPP service checks</h1>)
-      footer = html[%r{<footer>.*</footer>}m]
-      assert footer, "footer"
-      assert html.index("</main>") < html.index("<footer>"), "footer outside main, so its line spans the window"
-      refute_match(/body \{[^}]*max-width/, html, "body is not limited in width")
-      assert_includes footer, %(Operated by <a href="https://www.ownyourdata.eu/en/">OwnYourData</a>)
-      assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/imprint/">Imprint</a>)
-      assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/privacy-policy/">Privacy</a>)
-      assert_includes footer, %(<div class="funding">#{DppValidator::Funding.html}</div>)
-      assert_equal 1, html.scan("917177").size
+      services = [
+        entry("svc-a", "Service <A>"),
+        entry("svc-b", "Service B", source: "research", check: { "mode" => "read-only-weekly" }, "api_base" => "https://b.example/v1",
+              "example_passports" => [{ "product_id" => "https://b.example/01/1", "label" => "demo passport" }], "notes" => "Demo <only>."),
+        entry("svc-c", "Service C", source: "research", check: { "mode" => "none", "reason" => "no_public_instance" })
+      ]
+      results = {
+        "svc-a" => result("svc-a", "Service <A>", [
+          criterion("DPP-DEX-006", "active", "failed", messages: [{ "severity" => "error", "message" => "HTTP/1.1 not rejected" }]),
+          criterion("DPP-API-013", "active", "passed",
+                    description_url: "https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013"),
+          criterion("DPP-OPS-006", "proposed", "skipped", reason: "self-declared", reason_code: "not_evaluated"),
+          criterion("DPP-API-019", "active", "skipped", reason: "the service lists historical-versions as not implemented",
+                    reason_code: "not_implemented")
+        ]),
+        "gone" => result("gone", "No longer listed", [])
+      }
+      count, out = build(dir, services: services, results: results, lints: { "svc-b" => lint("svc-b", "https://b.example/01/1") },
+                              this_service: "svc-a")
+      assert_equal 3, count
+
+      index = File.read(File.join(out, "index.html"), encoding: "UTF-8")
+      assert_page_rules(index)
+      assert_includes index, %(<a href="services/svc-a.html">Service &lt;A&gt;</a><br>)
+      assert_includes index, "Entry maintained by the operator"
+      assert_includes index, "Entry from our research · as of 2026-10-18"
+      assert_includes index, "1 of 2 passed · full, daily"
+      assert_includes index, "first run pending · read-only, weekly"
+      assert_includes index, "not checked: no public instance"
+      assert_includes index, %(<a href="https://dpplint.example/?productId=x">demo passport</a>: 3 of 4 passed · 1 warning)
+      assert_includes index, "no public example passport"
+      assert_includes index, DppValidator::Site::RESEARCH_NOTICE
+      assert_includes index, %(<a href="available-services.json">available-services.json</a>)
+      refute_includes index, "No longer listed"
+      assert index.index("svc-a.html") < index.index("svc-b.html"), "this service first"
+      assert_includes index, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
+
+      a = File.read(File.join(out, "services", "svc-a.html"), encoding: "UTF-8")
+      assert_page_rules(a)
+      assert_includes a, "Op &lt;&amp;&gt; · AT"
+      assert_includes a, "1 of 2 automated checks passed"
+      assert_includes a, "Proposed criteria, not counted: 0 of 0 automated checks passed"
+      assert_includes a, "(proposed, not counted)"
+      assert_includes a, "error: HTTP/1.1 not rejected"
+      assert_includes a, "1 skipped: 1 not implemented"
+      assert_includes a, %(<span class="muted">not evaluated</span>)
+      assert_includes a, "mailto:office@op.example"
+      assert_includes a, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/dex/DPP-DEX-006.yaml"
+      assert_includes a, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-api-013")
+      assert_includes a, %(<a href="../results/svc-a.json">JSON</a>)
+      assert_includes a, %(<link rel="icon" href="../oyd-mark.svg" type="image/svg+xml">)
+      assert_includes a, DppValidator::Report::NOTICE
+      refute_includes a, DppValidator::Site::RESEARCH_NOTICE
+      assert a.index("DPP-DEX-006") < a.index("DPP-API-013"), "failed before passed"
+      assert a.index("DPP-API-013") < a.index("DPP-OPS-006"), "proposed after active"
+
+      b = File.read(File.join(out, "services", "svc-b.html"), encoding: "UTF-8")
+      assert_page_rules(b)
+      assert_includes b, "<strong>Entry from our research</strong> &middot; information as of 2026-10-18"
+      assert_includes b, "Demo &lt;only&gt;."
+      assert_includes b, DppValidator::Site::RESEARCH_NOTICE
+      assert_includes b, "3 of 4 automated checks passed"
+      assert b.index("DPP-ID-001") < b.index("DPP-DAT-016"), "failed before warning"
+      assert_includes b, "First run pending · read-only, weekly."
+
+      c = File.read(File.join(out, "services", "svc-c.html"), encoding: "UTF-8")
+      assert_includes c, "Not checked: no public instance."
+
+      assert_equal "svc-a", JSON.parse(File.read(File.join(out, "results", "svc-a.json"), encoding: "UTF-8")).dig("service", "id")
+      refute File.exist?(File.join(out, "results", "gone.json"))
+      assert_equal "svc-b", JSON.parse(File.read(File.join(out, "linter", "svc-b.json"), encoding: "UTF-8"))["service_id"]
       assert_equal File.binread(DppValidator::Site::MARK), File.binread(File.join(out, "oyd-mark.svg"))
-      assert html.index("DPP-DEX-006") < html.index("DPP-API-013"), "failed before passed"
-      assert html.index("DPP-API-013") < html.index("DPP-OPS-006"), "proposed after active"
-      assert_equal "svc-a", JSON.parse(File.read(File.join(out, "results", "svc-a.json"))).dig("service", "id")
+      available = JSON.parse(File.read(File.join(out, "available-services.json"), encoding: "UTF-8"))
+      assert_equal %w[svc-a svc-b svc-c], available["services"].map { |s| s["id"] }
     end
   end
 
-  test "no results is a configuration error" do
+  test "without entries the site is built from the validator results" do
+    Dir.mktmpdir do |dir|
+      count, out = build(dir, services: nil, results: { "svc-a" => result("svc-a", "Service A", [criterion("DPP-API-013", "active", "passed")]) })
+      assert_equal 1, count
+      assert_includes File.read(File.join(out, "index.html"), encoding: "UTF-8"), "Service A"
+    end
+  end
+
+  test "no entries and no results is a configuration error" do
     Dir.mktmpdir do |dir|
       assert_raises(DppValidator::Error) { DppValidator::Site.new(results_dir: dir, output_dir: File.join(dir, "o")).build }
     end

@@ -73,6 +73,9 @@ module DppValidator
 
     def service_ids = Dir[File.join(@dir, "services", "*.yaml")].map { |f| File.basename(f, ".yaml") }.sort
 
+    # All entries of services/, each checked against the schema.
+    def services = service_ids.map { |id| service(id) }
+
     private
 
     def schema_path(name) = File.join(@dir, "schema", "#{name}.schema.json")
