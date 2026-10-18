@@ -37,6 +37,8 @@ class AvailableTest < ValidatorTestCase
     assert_equal "2026-09-28T12:00:00Z", data["generated_at"]
     assert_match(/research project/, data["notice"])
     assert_match(/no certification/, data["notice"])
+    assert data["notice"].end_with?("Entries from our research come from our own research and may be incomplete or out of date.")
+    refute_includes data["notice"], "entry.source", "the notice names no field"
     assert_equal %w[ours zz-research none], data["services"].map { |s| s["id"] }, "this service, then research entries by name"
     ours = data["services"].first
     assert_equal %w[id name url provider this_service entry licence linter validator], ours.keys
