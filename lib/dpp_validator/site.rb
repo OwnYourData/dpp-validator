@@ -134,12 +134,22 @@ module DppValidator
     def check_text(s, result)
       return NOT_CHECKED.fetch(s.check_reason.to_s, "not checked") unless s.checked?
 
-      plan = s.read_only? ? "read-only, weekly" : "full, daily"
+      plan = if s.test_instance? then "full, weekly, on our own test instance"
+             elsif s.read_only? then "read-only, weekly"
+             else "full, daily"
+             end
       return "first run pending · #{plan}" unless result
 
       summary = result["summary"] || {}
       passed = summary["passed"].to_i
+      version = result.dig("test_instance", "version")
+      plan = "#{plan} (version #{version})" if s.test_instance? && version
       "#{short(passed, passed + summary['failed'].to_i, summary['warnings'])} · #{plan}"
+    end
+
+    def test_instance_text(s)
+      ti = s.test_instance
+      %(#{h(ti['configuration'])} <a href="#{h(ti['setup'])}">Setup</a>)
     end
 
     def passport_texts(s, lint)
@@ -173,7 +183,9 @@ module DppValidator
         <a href="#{CRITERIA_REPO}">dpp-criteria</a>: example passports are checked with
         <a href="https://dpplint.ownyourdata.eu">dpplint</a>, the services with
         <a href="https://github.com/OwnYourData/dpp-validator">dpp-validator</a>. Entries maintained by the operator are
-        checked in full every day, entries from our research read-only once a week.
+        checked in full every day, entries from our research read-only once a week; open software without a public
+        instance is checked in full once a week on a short-lived test instance of our own, started with the current
+        release and discarded after the run.
         Only criteria with status <em>active</em> count in &ldquo;N of M&rdquo;; warnings are included in the passed ones.</p>
         <p class="notice">#{h(RESEARCH_NOTICE)} Operators can correct or take over an entry, or ask for its removal:
         <a href="#{SERVICES_README}">how to add or correct a service</a>. #{h(Report::NOTICE)}</p>
@@ -199,6 +211,7 @@ module DppValidator
           #{s.api_base ? %(<dt>API base</dt><dd>#{h(s.api_base)}</dd>) : ''}
           #{s.data['contact'] ? %(<dt>Contact</dt><dd><a href="mailto:#{h(s.data['contact'])}">#{h(s.data['contact'])}</a></dd>) : ''}
           <dt>Checks</dt><dd>#{h(check_text(s, result))}</dd>
+          #{s.test_instance? ? %(<dt>Test instance</dt><dd>#{test_instance_text(s)}</dd>) : ''}
           <dt>Listed since</dt><dd>#{h(s.data['listed_since'].to_s.empty? ? '–' : s.data['listed_since'])}</dd>
           <dt>Entry</dt><dd><a href="#{CRITERIA_REPO}/blob/main/services/#{h(s.id)}.yaml">services/#{h(s.id)}.yaml</a></dd>
         </dl>
@@ -253,7 +266,7 @@ module DppValidator
       <<~HTML
         <p class="muted">Run #{h(r['run_at'])} &middot; dpp-criteria <a href="#{CRITERIA_REPO}/tree/#{h(commit)}">#{h(commit[0, 7])}</a> &middot; <a href="../results/#{h(s.id)}.json">JSON</a></p>
         <div class="summary"><strong>#{h(summary['text'])}</strong>
-          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(skipped_text(summary))})#{r['mode'] == 'read-only' ? ' &middot; read-only run' : ''}
+          (#{h(summary['failed'])} failed, #{h(summary['warnings'])} with warnings, #{h(skipped_text(summary))})#{mode_text(r)}
           <div class="notice">Proposed criteria, not counted: #{h(proposed['text'])}</div></div>
         <div class="scroll"><table>
         <thead><tr><th>Criterion</th><th>Requirement and findings</th><th>Level</th><th>Result</th></tr></thead>
@@ -261,6 +274,18 @@ module DppValidator
         #{rows(r['criteria'] || [], commit)}
         </tbody></table></div>
       HTML
+    end
+
+    def mode_text(r)
+      case r["mode"]
+      when "read-only" then " &middot; read-only run"
+      when "test-instance"
+        ti = r["test_instance"] || {}
+        name = [ti["software"], ti["version"]].compact.join(" ")
+        release = ti["release"] ? %( (<a href="#{h(ti['release'])}">release</a>)) : ""
+        " &middot; on our own test instance: #{h(name)}#{release}"
+      else ""
+      end
     end
 
     def rows(criteria, commit)

@@ -27,6 +27,14 @@ covers the behaviour of the DPP service and its API.
   our research are run read-only (only GET, HEAD and OPTIONS) once a week, or
   not at all if `check.mode` is `none`. `--read-only` makes any run read-only;
   criteria with other methods are `skipped` with `reason_code: not_sent`.
+- Open software without a public instance (`check.mode: test-instance-weekly`)
+  is run in full once a week on a short-lived test instance of our own,
+  started with the current release and discarded after the run
+  ([test-instances/](test-instances/README.md)). The results name the software
+  version; certificate, TLS and HTTP version checks and the criteria the entry
+  lists under `test_instance.not_applicable` are `skipped` with
+  `reason_code: not_applicable`, because they would describe our test
+  environment.
 - The example passports of an entry (`example_passports`) are checked with the
   API of [dpplint](https://dpplint.ownyourdata.eu) in the same run as the
   service: daily for operator entries, weekly for research entries, also when
@@ -72,9 +80,12 @@ docker run --rm -v "$PWD/results:/app/results" oydeu/dpp-validator:latest run --
 ```
 
 `run` checks one entry: in full for an operator entry, read-only for an entry
-from our research; an entry with `check.mode: none` is refused. `cycle` does
-what the scheduled workflow does for one cadence, with the dpplint checks of
-the example passports:
+from our research, in full on a running test instance with
+`--test-instance <info file>` (see [test-instances/](test-instances/README.md));
+an entry with `check.mode: none` is refused. `cycle` does what the scheduled
+workflow does for one cadence, with the dpplint checks of the example
+passports; `--test-instances <dir>` gives the info files of the started test
+instances:
 
 ```sh
 docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
@@ -82,7 +93,8 @@ docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadenc
 ```
 
 `services --cadence daily|weekly` lists the entries whose service is run with
-that cadence.
+that cadence, `services --test-instances` those checked on our own test
+instance.
 
 A service that is not listed is checked from a local entry file, read-only:
 
@@ -138,7 +150,10 @@ checks are meaningless behind a proxy that terminates TLS.
 
 `messages` holds failures and warnings (`severity` `error` or `warning`),
 `reason` and `reason_code` the reason for `skipped`, `details` what the runner
-observed. `mode` is `full` or `read-only`; `skipped_by_reason` counts the
+observed. `mode` is `full`, `read-only` or `test-instance`; a run on a test
+instance has `test_instance` (`software`, `version`, `release`, `images`,
+`started_at`, `setup`, `test_passport`, `test_data`) and no `api_base` in
+`service`. `skipped_by_reason` counts the
 skipped criteria per `reason_code` (only codes that occur).
 `description_url` links to the readable description of the criterion in
 `criteria/README.md` of the dpp-criteria commit used; it is absent if that
@@ -210,12 +225,15 @@ shows these numbers as "5 of 5 passed · 1 warning".
   both without numbers.
 - `validator.status` is `checked`, `pending` (no run yet) or, for an entry
   with `check.mode: none`, its `check.reason`: `needs_credentials`,
-  `no_public_instance` or `no_en18222_paths`. `mode` is `full` or
-  `read-only`, `cadence` `daily` or `weekly`.
+  `no_public_instance` or `no_en18222_paths`. `mode` is `full`, `read-only`
+  or `test-instance` (in full on our own short-lived test instance; then
+  `test_instance` gives `software`, `version` and `release` of the last run),
+  `cadence` `daily` or `weekly`.
 
 ## Layout
 
 - `lib/dpp_validator/checks/` – one class per check type, registered in `checks.rb`
+- `test-instances/` – setups of our own short-lived test instances, one directory per entry
 - `lib/dpp_validator/transport/` – HTTP/1.x and HTTP/2 over TLS with ALPN, TLS version probes
 - `lib/dpp_validator/from_dpplint/` – `EcmaRegexp`, `IRegexp`, `HeaderAssertion`, copied unchanged from dpplint (source commit in each file header), with their tests under `test/from_dpplint/`
 - `test/` – Minitest; local HTTPS test servers with their own CA, HTTP/1.1 and HTTP/2

@@ -3,19 +3,24 @@ module DppValidator
   # with status active whose result is passed, warning (passed with a remark)
   # or failed; skipped results are not counted. Proposed criteria are
   # reported separately as "proposed, not counted". Skipped criteria are
-  # counted per reason_code (skipped_by_reason). mode is "full" or
-  # "read-only" (only GET, HEAD and OPTIONS sent).
+  # counted per reason_code (skipped_by_reason). mode is "full",
+  # "read-only" (only GET, HEAD and OPTIONS sent) or "test-instance" (in full,
+  # on our own short-lived test instance; test_instance names the software
+  # version, the images and the test passport, but not the internal API base).
   class Report
     NOTICE = "Results of automated checks only. They are no certification and establish no presumption of conformity.".freeze
     COUNTED = %w[passed warning failed].freeze
 
     attr_reader :service, :run_at, :criteria_commit, :results, :not_run
 
-    def initialize(service:, run_at:, criteria_commit:, results:, not_run:, read_only: false)
+    PUBLIC_TEST_INSTANCE = %w[software version release images started_at setup test_passport test_data].freeze
+
+    def initialize(service:, run_at:, criteria_commit:, results:, not_run:, read_only: false, test_instance: nil)
       @service = service
       @run_at = run_at
       @criteria_commit = criteria_commit
       @read_only = read_only
+      @test_instance = test_instance
       @results = results.map { |r| r.merge("counted" => r["status"] == "active" && COUNTED.include?(r["result"])) }
       @not_run = not_run
     end
@@ -27,21 +32,22 @@ module DppValidator
       {
         "validator" => { "name" => "dpp-validator", "version" => VERSION },
         "notice" => NOTICE,
-        "service" => @service.to_h,
+        "service" => @test_instance ? @service.to_h.except("api_base") : @service.to_h,
         "run_at" => @run_at.utc.iso8601,
         "mode" => mode,
+        "test_instance" => @test_instance&.slice(*PUBLIC_TEST_INSTANCE),
         "dpp_criteria" => { "repository" => "https://github.com/OwnYourData/dpp-criteria", "commit" => @criteria_commit },
         "summary" => summary.merge("proposed_not_counted" => proposed_summary),
         "criteria" => @results,
         "not_run" => @not_run
-      }
+      }.compact
     end
 
     def to_json(*args) = JSON.pretty_generate(to_h, *args)
 
     def to_text
       lines = []
-      lines << "dpp-validator #{VERSION}: #{@service.name} (#{@service.api_base})"
+      lines << "dpp-validator #{VERSION}: #{@service.name} (#{@test_instance ? test_instance_text : @service.api_base})"
       lines << "dpp-criteria #{@criteria_commit}, run #{@run_at.utc.iso8601}"
       lines << "read-only run: only GET, HEAD and OPTIONS requests were sent" if @read_only
       lines << "#{summary['text']} (active criteria)"
@@ -60,7 +66,13 @@ module DppValidator
       lines.join("\n")
     end
 
-    def mode = @read_only ? "read-only" : "full"
+    def mode
+      return "test-instance" if @test_instance
+
+      @read_only ? "read-only" : "full"
+    end
+
+    def test_instance_text = "our own test instance, #{[@test_instance['software'], @test_instance['version']].compact.join(' ')}"
 
     private
 
