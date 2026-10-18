@@ -3,7 +3,8 @@ name: daily
 # Runs the criteria of the pinned dpp-criteria commit (DPP_CRITERIA_REF):
 # every day against the operator entries (in full) and their example
 # passports (dpplint), on Mondays also against the entries from our research
-# (read-only) and their example passports. Keeps the JSON results on the
+# (read-only, or in full on our own short-lived test instances, see
+# test-instances/) and their example passports. Keeps the JSON results on the
 # branch "results" (runs/<date>/ and latest/) and publishes the result pages
 # and available-services.json on GitHub Pages.
 
@@ -13,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       weekly:
-        description: "Also run the weekly read-only checks of the entries from our research"
+        description: "Also run the weekly checks of the entries from our research"
         type: boolean
         default: false
 
@@ -46,7 +47,7 @@ jobs:
           docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
           ls -lR out
 
-      - name: Weekly read-only checks of the entries from our research (Mondays)
+      - name: Weekly checks of the entries from our research (Mondays)
         if: github.event_name == 'workflow_dispatch' && inputs.weekly || github.event_name == 'schedule'
         continue-on-error: true
         run: |
@@ -54,8 +55,21 @@ jobs:
             echo "not Monday, weekly checks skipped"
             exit 0
           fi
-          docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence weekly --output out
+          docker network inspect dpp-validator-test >/dev/null 2>&1 || docker network create dpp-validator-test
+          mkdir -p test-instance-info
+          for id in $(docker run --rm oydeu/dpp-validator:latest services --test-instances); do
+            "test-instances/$id/instance.sh" start "test-instance-info/$id.json" || echo "::warning::test instance $id did not start"
+          done
+          docker run --rm --network dpp-validator-test -v "$PWD/out:/app/out" -v "$PWD/test-instance-info:/app/test-instance-info" \
+            oydeu/dpp-validator:latest cycle --cadence weekly --output out --test-instances test-instance-info
           ls -lR out
+
+      - name: Discard the test instances
+        if: always() && (github.event_name == 'workflow_dispatch' && inputs.weekly || github.event_name == 'schedule')
+        run: |
+          for script in test-instances/*/instance.sh; do
+            "$script" stop || true
+          done
 
       - name: Keep the results on the branch results
         run: |

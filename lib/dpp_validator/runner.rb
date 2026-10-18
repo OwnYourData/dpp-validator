@@ -8,6 +8,10 @@ module DppValidator
   # Per criterion, in this order (reason_code in brackets, see "Results" in
   # CRITERIA-FORMAT.md):
   # 1. the file does not match the criterion schema -> skipped (not_evaluated);
+  # 1a. a run on our own test instance (Config#test_instance): a tls check, or
+  #    a criterion the entry lists under test_instance.not_applicable ->
+  #    skipped (not_applicable), because the result would describe our test
+  #    environment rather than the software;
   # 2. a feature in requires_features is not declared by the service ->
   #    skipped (not_implemented if the service lists it under
   #    not_implemented, otherwise not_applicable);
@@ -21,6 +25,8 @@ module DppValidator
   # An error in the runner gives skipped (not_evaluated).
   class Runner
     IN_SCOPE = %w[service operator].freeze
+    TEST_INSTANCE_TLS = "checked on our own test instance: certificate, TLS and HTTP versions would describe our test " \
+                        "environment, not the software".freeze
 
     def initialize(repository:, service:, config: Config.new, client: nil, now: Time.now.utc, random_id: nil)
       @repository = repository
@@ -39,7 +45,7 @@ module DppValidator
         { "id" => c.id, "target" => c["target"], "reason" => "passport criteria are checked by dpplint, not connected in this version" }
       end
       Report.new(service: @service, run_at: @now, criteria_commit: @repository.commit, results: results, not_run: not_run,
-                 read_only: @config.read_only)
+                 read_only: @config.read_only, test_instance: @config.test_instance)
     end
 
     def evaluate(criterion, context)
@@ -66,6 +72,14 @@ module DppValidator
       if criterion.schema_errors.any?
         return Checks::Outcome.skipped("#{criterion.file} does not match schema/criterion.schema.json: #{criterion.schema_errors.join('; ')}",
                                        code: "not_evaluated")
+      end
+
+      if @config.test_instance
+        return Checks::Outcome.skipped(TEST_INSTANCE_TLS, code: "not_applicable") if check["type"] == "tls"
+
+        if (reason = @service.not_applicable_on_test_instance[criterion.id])
+          return Checks::Outcome.skipped("checked on our own test instance. #{reason}", code: "not_applicable")
+        end
       end
 
       missing = Array(criterion["requires_features"]) - @service.features

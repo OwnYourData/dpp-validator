@@ -1,0 +1,60 @@
+# Test instance of the Eclipse BaSyx DPP API: the DPP API and its database
+# set-up service in the release BASYX_VERSION, with PostgreSQL, configured as
+# in the DPP API example of the project (examples/BaSyxDPPAPIExample) without
+# access control. Started and discarded by instance.sh, which also sets a new
+# random database password (BASYX_DB_PASSWORD) for every start. Reachable for
+# dpp-validator as http://basyx-dpp-api:8080/v1 on the network
+# dpp-validator-test, and for instance.sh on 127.0.0.1:18080.
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: basyx
+      POSTGRES_PASSWORD: ${BASYX_DB_PASSWORD:?}
+      POSTGRES_DB: basyx
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U basyx -d basyx"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  configuration:
+    image: eclipsebasyx/basyxconfigurationservice-go:${BASYX_VERSION:?}
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: basyx
+      POSTGRES_PASSWORD: ${BASYX_DB_PASSWORD:?}
+      POSTGRES_DBNAME: basyx
+    depends_on:
+      db:
+        condition: service_healthy
+
+  dpp-api:
+    image: eclipsebasyx/dppapi-go:${BASYX_VERSION:?}
+    environment:
+      SERVER_PORT: "8080"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: basyx
+      POSTGRES_PASSWORD: ${BASYX_DB_PASSWORD:?}
+      POSTGRES_DBNAME: basyx
+      ABAC_ENABLED: "false"
+      BASYX_HISTORY_MODE: audit
+      BASYX_HISTORY_RETENTION_DAYS: "0"
+      BASYX_HISTORY_FULL_SNAPSHOT_INTERVAL: "1"
+      BASYX_HISTORY_IMMUTABILITY: none
+    ports:
+      - "127.0.0.1:18080:8080"
+    networks:
+      default: {}
+      validator:
+        aliases: [basyx-dpp-api]
+    depends_on:
+      configuration:
+        condition: service_completed_successfully
+
+networks:
+  validator:
+    name: dpp-validator-test
+    external: true

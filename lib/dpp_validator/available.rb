@@ -86,10 +86,16 @@ module DppValidator
       { "passports" => passports }
     end
 
+    # mode: "full", "read-only" or "test-instance" (in full, on our own
+    # short-lived test instance; test_instance names the software and version
+    # of the last run).
     def validator(service)
       return { "status" => service.check_reason } unless service.checked?
 
-      mode = service.read_only? ? "read-only" : "full"
+      mode = if service.test_instance? then "test-instance"
+             elsif service.read_only? then "read-only"
+             else "full"
+             end
       head = { "mode" => mode, "cadence" => service.cadence, "details_url" => details_url(service) }
       result = @results[service.id]
       return { "status" => "pending" }.merge(head) unless result
@@ -99,10 +105,11 @@ module DppValidator
       failed = summary["failed"].to_i
       { "status" => "checked" }.merge(head).merge(
         "mode" => result["mode"] || mode,
+        "test_instance" => result["test_instance"]&.slice("software", "version", "release"),
         "summary_text" => summary["text"], "passed" => passed, "total" => passed + failed, "failed" => failed,
         "warnings" => summary["warnings"].to_i, "proposed_failed" => summary.dig("proposed_not_counted", "failed").to_i,
         "checked_at" => result["run_at"].to_s[0, 10]
-      )
+      ).compact
     end
   end
 end

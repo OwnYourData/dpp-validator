@@ -4,8 +4,11 @@ module DppValidator
   # entry.source says who maintains the entry: "operator" (pull request by the
   # operator or with linked consent; checked in full every day) or "research"
   # (from the maintainers' own research; checked read-only at most once a
-  # week, or not at all). check.mode is full-daily, read-only-weekly or none
-  # (with check.reason).
+  # week, in full once a week on our own test instance, or not at all).
+  # check.mode is full-daily, read-only-weekly, test-instance-weekly or none
+  # (with check.reason). An entry checked on a test instance has no api_base
+  # and no test_data of its own: the running test instance provides them
+  # (on_test_instance).
   class Service
     CADENCE = { "full-daily" => "daily", "read-only-weekly" => "weekly" }.freeze
 
@@ -30,6 +33,8 @@ module DppValidator
     def check_reason = data.dig("check", "reason")
     def checked? = check_mode != "none"
     def read_only? = check_mode == "read-only-weekly"
+    def test_instance? = check_mode == "test-instance-weekly"
+    def test_instance = data["test_instance"] || {}
     def notes = data["notes"]
     def licence = data["licence"] || {}
     def example_passports = Array(data["example_passports"])
@@ -38,11 +43,24 @@ module DppValidator
     # service and its example passports are checked.
     def cadence = research? ? "weekly" : "daily"
 
+    # Criteria listed under test_instance.not_applicable: { id => reason }.
+    def not_applicable_on_test_instance
+      Array(test_instance["not_applicable"]).to_h { |n| [n["criterion"], n["reason"].to_s.strip] }
+    end
+
+    # The entry with the API base and the test passport of a running test
+    # instance (the info file written when the instance was started).
+    def on_test_instance(info)
+      Service.new(data.merge("api_base" => info["api_base"], "test_data" => info["test_data"]))
+    end
+
     def to_h
       { "id" => id, "name" => name, "url" => url, "operator" => data.dig("operator", "name"), "operator_url" => data.dig("operator", "url"),
         "country" => data.dig("operator", "country"), "entry" => { "source" => source, "as_of" => as_of },
         "contact" => data["contact"], "api_base" => api_base, "features" => features, "not_implemented" => not_implemented,
-        "check" => { "mode" => check_mode, "reason" => check_reason }.compact, "listed_since" => data["listed_since"].to_s }.compact
+        "check" => { "mode" => check_mode, "reason" => check_reason }.compact,
+        "test_instance" => (test_instance.slice("setup", "configuration") if test_instance?),
+        "listed_since" => data["listed_since"].to_s }.compact
     end
   end
 end
