@@ -1,0 +1,14 @@
+{
+  "service_id": "ownyourdata-dpp-service",
+  "checked_at": "2026-10-19T09:55:25Z",
+  "dpplint": "https://dpplint.ownyourdata.eu",
+  "passports": [
+    {
+      "product_id": "https://dpp.oydapp.eu/01/09520123456788/21/000001",
+      "label": "reference passport",
+      "lint_url": "https://dpplint.ownyourdata.eu/?productId=https%3A%2F%2Fdpp.oydapp.eu%2F01%2F09520123456788%2F21%2F000001",
+      "status": "error",
+      "error": "dpplint: no response (timed out: no response)"
+    }
+  ]
+}

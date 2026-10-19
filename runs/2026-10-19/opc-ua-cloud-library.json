@@ -1,0 +1,683 @@
+{
+  "validator": {
+    "name": "dpp-validator",
+    "version": "0.1.0"
+  },
+  "notice": "Results of automated checks only. They are no certification and establish no presumption of conformity.",
+  "service": {
+    "id": "opc-ua-cloud-library",
+    "name": "OPC UA Cloud Library",
+    "url": "https://uacloudlibrary.opcfoundation.org",
+    "operator": "OPC Foundation",
+    "entry": {
+      "source": "research",
+      "as_of": "2026-10-18"
+    },
+    "api_base": "https://uacloudlibrary.opcfoundation.org/v1",
+    "features": [
+      "fine-granular-api",
+      "historical-versions"
+    ],
+    "not_implemented": [
+
+    ],
+    "check": {
+      "mode": "read-only-weekly"
+    },
+    "listed_since": "2026-10-18"
+  },
+  "run_at": "2026-10-19T09:58:13Z",
+  "mode": "read-only",
+  "dpp_criteria": {
+    "repository": "https://github.com/OwnYourData/dpp-criteria",
+    "commit": "08ee85155ef636a03fd840c7e8f37828c28e619b"
+  },
+  "summary": {
+    "text": "2 of 2 automated checks passed",
+    "passed": 2,
+    "failed": 0,
+    "warnings": 1,
+    "skipped": 13,
+    "skipped_by_reason": {
+      "not_sent": 3,
+      "not_evaluated": 10
+    },
+    "proposed_not_counted": {
+      "text": "0 of 0 automated checks passed",
+      "passed": 0,
+      "failed": 0,
+      "warnings": 0,
+      "skipped": 9,
+      "skipped_by_reason": {
+        "not_applicable": 8,
+        "not_evaluated": 1
+      }
+    }
+  },
+  "criteria": [
+    {
+      "id": "DPP-ACC-003",
+      "version": 1,
+      "status": "proposed",
+      "title": "Controlled data elements are delivered per role",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-acc-003",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated-auth",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-ACC-006",
+      "version": 1,
+      "status": "proposed",
+      "title": "Controlled data elements are not delivered without authorisation",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-acc-006",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-ACC-008",
+      "version": 1,
+      "status": "proposed",
+      "title": "Access policy defines element-level rights, granting and revocation",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-acc-008",
+      "level": "MUST",
+      "target": "service",
+      "method": "self-declared",
+      "check_type": "declaration",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-ACC-012",
+      "version": 1,
+      "status": "proposed",
+      "title": "Fine-granular read of a controlled element without credentials is refused",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-acc-012",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-ACC-014",
+      "version": 1,
+      "status": "proposed",
+      "title": "Access to controlled data is logged tamper-evidently",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-acc-014",
+      "level": "MUST",
+      "target": "service",
+      "method": "self-declared",
+      "check_type": "declaration",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-007",
+      "version": 2,
+      "status": "active",
+      "title": "Errors use the EN 18222 status codes",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-007",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "read-only run: not sent, the criterion needs step 1 POST /dppsByProductIds, step 2 POST /dppsByProductIds",
+      "reason_code": "not_sent",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-013",
+      "version": 1,
+      "status": "active",
+      "title": "Lifecycle API provides ReadDPPById",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-013",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-014",
+      "version": 1,
+      "status": "active",
+      "title": "Lifecycle API provides ReadDPPByProductId",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-014",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {productId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-015",
+      "version": 1,
+      "status": "active",
+      "title": "Lifecycle API provides ReadDPPIdsByProductIds",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-015",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "read-only run: not sent, the criterion needs step 1 POST /dppsByProductIds",
+      "reason_code": "not_sent",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-016",
+      "version": 1,
+      "status": "proposed",
+      "title": "Lifecycle API provides UpdateDPPById",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-016",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated-auth",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare write-api",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-019",
+      "version": 1,
+      "status": "active",
+      "title": "Lifecycle API provides ReadDPPVersionByIdAndDate",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-019",
+      "level": "SHOULD",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-020",
+      "version": 1,
+      "status": "active",
+      "title": "API paths carry the version prefix v1/",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-020",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-021",
+      "version": 2,
+      "status": "active",
+      "title": "elementIdPath uses RFC 9535 JSONPath",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-021",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId}, {elementIdPath} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-API-022",
+      "version": 1,
+      "status": "active",
+      "title": "Unknown passport ID is answered with 404",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-022",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "warning",
+      "messages": [
+        {
+          "severity": "warning",
+          "message": "step 1 (GET /dpps/{randomId}): $.message selects nothing, expected a value"
+        }
+      ],
+      "details": [
+        "step 1 (GET /dpps/{randomId}): HTTP 404 over HTTP/1.1"
+      ],
+      "counted": true
+    },
+    {
+      "id": "DPP-API-023",
+      "version": 1,
+      "status": "active",
+      "title": "API honours the representation query flag",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-api-023",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-BAT-004",
+      "version": 2,
+      "status": "proposed",
+      "title": "Battery passport releases Annex XIII point 3 data only to authorities",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-bat-004",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated-auth",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare battery, access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-DEX-002",
+      "version": 1,
+      "status": "active",
+      "title": "HTTPS with a valid certificate",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-dex-002",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "tls",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-DEX-003",
+      "version": 1,
+      "status": "active",
+      "title": "TLS 1.2 or higher, older versions refused",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-dex-003",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "tls",
+      "result": "passed",
+      "messages": [
+
+      ],
+      "details": [
+        "negotiated TLS 1.3 (at least TLS 1.2)",
+        "SSL 3.0 refused (SSL 3.0 ClientHello answered with TLS alert handshake_failure)",
+        "TLS 1.0 refused (TLS handshake failed: state=error: tlsv1 alert protocol version (SSL alert number 70))",
+        "TLS 1.1 refused (TLS handshake failed: state=error: tlsv1 alert protocol version (SSL alert number 70))",
+        "TLS 1.3 supported"
+      ],
+      "counted": true
+    },
+    {
+      "id": "DPP-DEX-004",
+      "version": 1,
+      "status": "active",
+      "title": "API responses are JSON",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-dex-004",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-DEX-005",
+      "version": 1,
+      "status": "active",
+      "title": "HTTP/2 is supported",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-dex-005",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "tls",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-DEX-006",
+      "version": 1,
+      "status": "active",
+      "title": "HTTP versions below HTTP/2 are not used",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-dex-006",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "tls",
+      "result": "skipped",
+      "reason": "no value for {dppId} in the test_data of the service",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-OPS-006",
+      "version": 1,
+      "status": "proposed",
+      "title": "Separate test and production environments",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-ops-006",
+      "level": "SHOULD",
+      "target": "operator",
+      "method": "self-declared",
+      "check_type": "declaration",
+      "result": "skipped",
+      "reason": "self-declared criterion: declarations are not evaluated in this version and never count as passed",
+      "reason_code": "not_evaluated",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-SEC-001",
+      "version": 3,
+      "status": "active",
+      "title": "Passport cannot be changed without authorisation",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-sec-001",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "read-only run: not sent, the criterion needs step 2 PATCH /dpps/{dppId}, step 3 POST /dpps",
+      "reason_code": "not_sent",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    },
+    {
+      "id": "DPP-STO-017",
+      "version": 1,
+      "status": "proposed",
+      "title": "Archived versions keep the access restrictions",
+      "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee85155ef636a03fd840c7e8f37828c28e619b/criteria/README.md#dpp-sto-017",
+      "level": "MUST",
+      "target": "service",
+      "method": "automated",
+      "check_type": "http",
+      "result": "skipped",
+      "reason": "the service does not declare access-levels",
+      "reason_code": "not_applicable",
+      "messages": [
+
+      ],
+      "details": [
+
+      ],
+      "counted": false
+    }
+  ],
+  "not_run": [
+    {
+      "id": "DPP-BAT-002",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-CAR-002",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-CFG-005",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-CRT-003",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-003",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-006",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-011",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-014",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-015",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-DAT-016",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-001",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-002",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-009",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-010",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-013",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-014",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ID-016",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-INT-005",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-PCDS-008",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-ROL-016",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-SEC-002",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-SEC-013",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    },
+    {
+      "id": "DPP-SEC-014",
+      "target": "passport",
+      "reason": "passport criteria are checked by dpplint, not connected in this version"
+    }
+  ]
+}

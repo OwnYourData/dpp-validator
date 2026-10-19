@@ -1,6 +1,6 @@
 {
   "service_id": "opendpp",
-  "checked_at": "2026-10-18T21:03:51Z",
+  "checked_at": "2026-10-19T09:58:13Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -8,7 +8,7 @@
       "label": "demo battery cell",
       "lint_url": "https://dpplint.ownyourdata.eu/?productId=https%3A%2F%2Fopendpp-node.eu%2F01%2F09501101532007%2F21%2Fdemo-batteries-lfp-cell-200",
       "status": "checked",
-      "dpp_criteria": "0398547",
+      "dpp_criteria": "08ee851",
       "summary": {
         "text": "4 of 5 automated checks passed",
         "passed": 4,
@@ -25,7 +25,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-bat-002"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-bat-002"
         },
         {
           "id": "DPP-CAR-002",
@@ -33,7 +33,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-car-002"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-car-002"
         },
         {
           "id": "DPP-CFG-005",
@@ -41,7 +41,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-cfg-005"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-cfg-005"
         },
         {
           "id": "DPP-CRT-003",
@@ -49,14 +49,14 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-crt-003"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-crt-003"
         },
         {
           "id": "DPP-DAT-003",
           "title": "Passport is delivered as structured JSON",
           "status": "active",
           "result": "warning",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-003"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-003"
         },
         {
           "id": "DPP-DAT-006",
@@ -64,7 +64,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-006"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-006"
         },
         {
           "id": "DPP-DAT-011",
@@ -72,7 +72,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_applicable",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-011"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-011"
         },
         {
           "id": "DPP-DAT-014",
@@ -80,7 +80,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-014"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-014"
         },
         {
           "id": "DPP-DAT-015",
@@ -88,21 +88,21 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-015"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-015"
         },
         {
           "id": "DPP-DAT-016",
           "title": "Passport is available as HTML",
           "status": "active",
           "result": "warning",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-dat-016"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-dat-016"
         },
         {
           "id": "DPP-ID-001",
           "title": "Product identifier resolves to its passport",
           "status": "active",
           "result": "passed",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-001"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-001"
         },
         {
           "id": "DPP-ID-002",
@@ -110,7 +110,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-002"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-002"
         },
         {
           "id": "DPP-ID-009",
@@ -118,7 +118,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-009"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-009"
         },
         {
           "id": "DPP-ID-010",
@@ -126,14 +126,14 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-010"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-010"
         },
         {
           "id": "DPP-ID-013",
           "title": "Passport readable without registration or credentials",
           "status": "active",
           "result": "passed",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-013"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-013"
         },
         {
           "id": "DPP-ID-014",
@@ -141,7 +141,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-014"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-014"
         },
         {
           "id": "DPP-ID-016",
@@ -149,7 +149,7 @@
           "status": "active",
           "result": "skipped",
           "reason_code": "not_applicable",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-id-016"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-id-016"
         },
         {
           "id": "DPP-INT-005",
@@ -157,7 +157,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-int-005"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-int-005"
         },
         {
           "id": "DPP-PCDS-008",
@@ -165,7 +165,7 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_applicable",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-pcds-008"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-pcds-008"
         },
         {
           "id": "DPP-ROL-016",
@@ -173,14 +173,14 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "not_evaluated",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-rol-016"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-rol-016"
         },
         {
           "id": "DPP-SEC-002",
           "title": "Integrity of the passport version is verifiable",
           "status": "active",
           "result": "failed",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-sec-002"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-sec-002"
         },
         {
           "id": "DPP-SEC-013",
@@ -188,14 +188,14 @@
           "status": "proposed",
           "result": "skipped",
           "reason_code": "no_evidence",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-sec-013"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-sec-013"
         },
         {
           "id": "DPP-SEC-014",
           "title": "HTML view loads no external components",
           "status": "proposed",
           "result": "failed",
-          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/0398547/criteria/README.md#dpp-sec-014"
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/08ee851/criteria/README.md#dpp-sec-014"
         }
       ]
     }

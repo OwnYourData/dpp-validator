@@ -31,7 +31,7 @@
     },
     "listed_since": "2026-10-18"
   },
-  "run_at": "2026-10-18T21:03:51Z",
+  "run_at": "2026-10-19T09:58:13Z",
   "mode": "test-instance",
   "test_instance": {
     "software": "Eclipse BaSyx DPP API",
@@ -42,7 +42,7 @@
       "eclipsebasyx/basyxconfigurationservice-go:1.1.2@sha256:b8afd6932d763607f7e4d40ced8b1865d40aadc17d816a48f3c263fda3c81f74",
       "postgres:18@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336"
     ],
-    "started_at": "2026-10-18T21:03:51Z",
+    "started_at": "2026-10-19T09:58:13Z",
     "setup": "https://github.com/OwnYourData/dpp-validator/tree/main/test-instances/eclipse-basyx-dpp-api",
     "test_passport": "https://raw.githubusercontent.com/eclipse-basyx/basyx-go-components/v1.1.2/examples/BaSyxDPPAPIExample/sample-dpp.json",
     "test_data": {
