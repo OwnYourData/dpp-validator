@@ -21,7 +21,11 @@ module DppValidator
     # A request that cannot reach the service at all (no TCP connection) skips
     # the criterion: availability is rated separately (DPP-ID-002, history).
     # Requests with `auth: token` need credentials, which this version does
-    # not support; such a criterion is skipped.
+    # not support; such a criterion is skipped. So is a criterion with a step
+    # that compares its response with the resolved passport
+    # (`compare_with_resolved`), which this version does not evaluate: the
+    # criterion is skipped (not_evaluated) before any request rather than
+    # passed without the comparison.
     class HttpCheck
       DEFAULT_CONTENT_TYPE = "application/json".freeze
 
@@ -68,6 +72,9 @@ module DppValidator
 
       # [reason, reason_code] if the criterion cannot be evaluated, otherwise nil.
       def problem
+        if (index = steps.index { |s| s.key?("compare_with_resolved") })
+          return ["step #{index + 1}: compare_with_resolved is not evaluated in this version", "not_evaluated"]
+        end
         missing = @placeholders.missing(steps.map { |s| s["request"] } + steps.map { |s| s["expect"] })
         return ["no value for #{missing.map { |n| "{#{n}}" }.join(', ')} in the test_data of the service", "not_evaluated"] if missing.any?
         if steps.any? { |s| s.dig("request", "auth") == "token" }
