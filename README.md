@@ -16,7 +16,9 @@ covers the behaviour of the DPP service and its API.
 ## Status
 
 - Check types `tls` and `http` for all criteria with `target: service` and
-  `method: automated`.
+  `method: automated`. A step with `compare_with_resolved` is not evaluated
+  in this version; its criterion is `skipped` with
+  `reason_code: not_evaluated`.
 - `automated-auth` and `self-declared` criteria are listed as `skipped` with
   the reason and a `reason_code`; passport criteria are listed under `not_run`.
 - Features a service lists under `not_implemented` give `skipped` with

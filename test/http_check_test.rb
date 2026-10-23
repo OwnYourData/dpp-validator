@@ -265,6 +265,16 @@ class HttpCheckTest < ValidatorTestCase
     end
   end
 
+  test "a step with compare_with_resolved skips the criterion before any request" do
+    s = server { json(200, PASSPORT) }
+    step = get("/dppsByProductId/{productId}", { "status" => [200] }).merge("compare_with_resolved" => ["$.lastUpdated"])
+    outcome = run_check(check(get("/dpps/{dppId}", { "status" => [200] }), step), base(s))
+    assert_result "skipped", outcome
+    assert_equal "not_evaluated", outcome.reason_code
+    assert_equal "step 2: compare_with_resolved is not evaluated in this version", outcome.reason
+    assert_empty s.received
+  end
+
   test "without the controlled test element in test_data the check is skipped" do
     s = server { json(200, PASSPORT) }
     outcome = run_check(check(get("/dpps/{dppId}", { "json" => [{ "path" => "$..['{controlledElementId}']", "exists" => false }] })), base(s))
