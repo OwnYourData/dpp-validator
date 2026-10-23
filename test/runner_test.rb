@@ -7,10 +7,10 @@ require "fileutils"
 # against a local service that behaves as they expect.
 class RunnerTest < ValidatorTestCase
   CRITERIA_DIR = ENV.fetch("DPP_CRITERIA_DIR", "/opt/dpp-criteria")
-  SERVICE_CRITERIA = %w[DPP-ACC-003 DPP-ACC-006 DPP-ACC-008 DPP-ACC-012 DPP-ACC-014 DPP-API-007 DPP-API-013 DPP-API-014
-                        DPP-API-015 DPP-API-016 DPP-API-019 DPP-API-020 DPP-API-021 DPP-API-022 DPP-API-023 DPP-BAT-004
-                        DPP-BCK-006 DPP-DEX-002 DPP-DEX-003 DPP-DEX-004 DPP-DEX-005 DPP-DEX-006 DPP-DGA-001 DPP-OPS-006
-                        DPP-SEC-001 DPP-STO-015 DPP-STO-017 DPP-STO-019].freeze
+  SERVICE_CRITERIA = %w[DPP-ACC-003 DPP-ACC-006 DPP-ACC-008 DPP-ACC-012 DPP-ACC-014 DPP-ACC-015 DPP-API-007 DPP-API-013
+                        DPP-API-014 DPP-API-015 DPP-API-016 DPP-API-019 DPP-API-020 DPP-API-021 DPP-API-022 DPP-API-023
+                        DPP-BAT-003 DPP-BCK-006 DPP-DEX-002 DPP-DEX-003 DPP-DEX-004 DPP-DEX-005 DPP-DEX-006 DPP-DGA-001
+                        DPP-OPS-006 DPP-SEC-001 DPP-SEC-022 DPP-STO-015 DPP-STO-017 DPP-STO-019].freeze
   # Criteria that need the controlled test element and run without credentials.
   ACCESS_CRITERIA = %w[DPP-ACC-006 DPP-ACC-012 DPP-STO-017].freeze
   # Criteria with a step whose method a read-only run does not send.
@@ -61,8 +61,9 @@ class RunnerTest < ValidatorTestCase
     assert_equal SERVICE_CRITERIA, by_id.keys
     expected_skips = { "DPP-API-016" => [/automated-auth/, "needs_credentials"], "DPP-ACC-003" => [/automated-auth/, "needs_credentials"],
                        "DPP-OPS-006" => [/self-declared/, "not_evaluated"], "DPP-ACC-008" => [/self-declared/, "not_evaluated"],
-                       "DPP-ACC-014" => [/self-declared/, "not_evaluated"], "DPP-BAT-004" => [/battery/, "not_applicable"],
-                       "DPP-BCK-006" => [/self-declared/, "not_evaluated"], "DPP-DGA-001" => [/self-declared/, "not_evaluated"],
+                       "DPP-ACC-014" => [/self-declared/, "not_evaluated"], "DPP-ACC-015" => [/self-declared/, "not_evaluated"],
+                       "DPP-BAT-003" => [/battery/, "not_applicable"], "DPP-BCK-006" => [/self-declared/, "not_evaluated"],
+                       "DPP-DGA-001" => [/self-declared/, "not_evaluated"], "DPP-SEC-022" => [/self-declared/, "not_evaluated"],
                        "DPP-STO-015" => [/backup-provider/, "not_applicable"], "DPP-STO-019" => [/backup-provider/, "not_applicable"] }
     by_id.each do |id, r|
       if expected_skips[id]
@@ -75,7 +76,7 @@ class RunnerTest < ValidatorTestCase
     end
     assert report.not_run.any? { |n| n["id"] == "DPP-DAT-014" }
     assert_equal "full", report.to_h["mode"]
-    assert_equal({ "needs_credentials" => 2, "not_evaluated" => 5, "not_applicable" => 3 }, report.proposed_summary["skipped_by_reason"])
+    assert_equal({ "needs_credentials" => 2, "not_evaluated" => 7, "not_applicable" => 3 }, report.proposed_summary["skipped_by_reason"])
   end
 
   test "a back-up provider: criteria that compare with the resolved passport are skipped, not passed" do
