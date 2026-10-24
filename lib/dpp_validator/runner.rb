@@ -16,13 +16,18 @@ module DppValidator
   #    skipped (not_implemented if the service lists it under
   #    not_implemented, otherwise not_applicable);
   # 3. method self-declared -> skipped (not_evaluated; declarations are not
-  #    evaluated yet and are never reported as passed);
+  #    evaluated and are never reported as passed; the reason says whether the
+  #    entry has a declaration for the criterion);
   # 4. method automated-auth -> skipped (needs_credentials);
   # 5. the check type is not implemented -> skipped (not_evaluated);
   # 6. read-only run and a step with a method other than GET, HEAD or
   #    OPTIONS -> skipped (not_sent), before any request of the criterion;
   # 7. otherwise the check type decides (Checks).
   # An error in the runner gives skipped (not_evaluated).
+  #
+  # The self-declarations of the entry are passed to the report as they are,
+  # with the title, status and description link of their criterion: listed
+  # apart from the results, never checked and never counted.
   class Runner
     IN_SCOPE = %w[service operator].freeze
     TEST_INSTANCE_TLS = "checked on our own test instance: certificate, TLS and HTTP versions would describe our test " \
@@ -45,7 +50,21 @@ module DppValidator
         { "id" => c.id, "target" => c["target"], "reason" => "passport criteria are checked by dpplint, not connected in this version" }
       end
       Report.new(service: @service, run_at: @now, criteria_commit: @repository.commit, results: results, not_run: not_run,
-                 read_only: @config.read_only, test_instance: @config.test_instance)
+                 declarations: declarations(current), read_only: @config.read_only, test_instance: @config.test_instance)
+    end
+
+    # The self-declarations of the entry, each with the title, status and
+    # description link of its criterion if the checkout has it.
+    def declarations(criteria)
+      by_id = criteria.to_h { |c| [c.id, c] }
+      @service.declarations.map do |d|
+        criterion = by_id[d["criterion"]]
+        {
+          "criterion" => d["criterion"].to_s, "title" => criterion&.[]("title"), "status" => criterion&.[]("status"),
+          "description_url" => (@repository.description_url(criterion.id) if criterion),
+          "statement" => d["statement"].to_s.strip, "evidence" => d["evidence"].to_s
+        }.compact
+      end
     end
 
     def evaluate(criterion, context)
@@ -92,8 +111,7 @@ module DppValidator
 
       case criterion["method"]
       when "self-declared"
-        return Checks::Outcome.skipped("self-declared criterion: declarations are not evaluated in this version and never count as passed",
-                                       code: "not_evaluated")
+        return Checks::Outcome.skipped(self_declared_reason(criterion), code: "not_evaluated")
       when "automated-auth"
         return Checks::Outcome.skipped("needs test credentials of the operator (automated-auth), not supported in this version",
                                        code: "needs_credentials")
@@ -109,6 +127,13 @@ module DppValidator
       klass.new(check, context).call
     rescue StandardError => e
       Checks::Outcome.skipped("runner error: #{e.class}: #{e.message}", code: "not_evaluated")
+    end
+
+    def self_declared_reason(criterion)
+      declared = @service.declarations.any? { |d| d["criterion"] == criterion.id }
+      head = declared ? "self-declared criterion: the declaration of the operator is listed under self-declarations" :
+                        "self-declared criterion: the entry has no declaration for it"
+      "#{head}; declarations are not evaluated and never count as passed"
     end
 
     # Steps of an http check whose method a read-only run does not send.

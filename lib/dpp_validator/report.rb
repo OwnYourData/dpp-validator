@@ -7,15 +7,22 @@ module DppValidator
   # "read-only" (only GET, HEAD and OPTIONS sent) or "test-instance" (in full,
   # on our own short-lived test instance; test_instance names the software
   # version, the images and the test passport, but not the internal API base).
+  #
+  # declarations lists the self-declarations of the entry apart from the
+  # results: the statement and the evidence link as the operator gives them,
+  # with the title and status of the criterion. They are not checked and never
+  # enter a summary; the self-declared criteria themselves stay skipped.
   class Report
     NOTICE = "Results of automated checks only. They are no certification and establish no presumption of conformity.".freeze
+    DECLARATIONS_NOTICE = "Statements of the operator about the service, with a link to its evidence, listed as given. " \
+                          "They are not checked and never count as passed.".freeze
     COUNTED = %w[passed warning failed].freeze
 
-    attr_reader :service, :run_at, :criteria_commit, :results, :not_run
+    attr_reader :service, :run_at, :criteria_commit, :results, :not_run, :declarations
 
     PUBLIC_TEST_INSTANCE = %w[software version release images started_at setup test_passport test_data].freeze
 
-    def initialize(service:, run_at:, criteria_commit:, results:, not_run:, read_only: false, test_instance: nil)
+    def initialize(service:, run_at:, criteria_commit:, results:, not_run:, declarations: [], read_only: false, test_instance: nil)
       @service = service
       @run_at = run_at
       @criteria_commit = criteria_commit
@@ -23,6 +30,7 @@ module DppValidator
       @test_instance = test_instance
       @results = results.map { |r| r.merge("counted" => r["status"] == "active" && COUNTED.include?(r["result"])) }
       @not_run = not_run
+      @declarations = declarations
     end
 
     def summary = tally(@results.select { |r| r["status"] == "active" })
@@ -39,6 +47,7 @@ module DppValidator
         "dpp_criteria" => { "repository" => "https://github.com/OwnYourData/dpp-criteria", "commit" => @criteria_commit },
         "summary" => summary.merge("proposed_not_counted" => proposed_summary),
         "criteria" => @results,
+        "declarations" => (declarations_h if @declarations.any?),
         "not_run" => @not_run
       }.compact
     end
@@ -60,6 +69,11 @@ module DppValidator
         lines << "    skipped (#{r['reason_code']}): #{r['reason']}" if r["reason"]
         Array(r["messages"]).each { |m| lines << "    #{m['severity']}: #{m['message']}" }
       end
+      if @declarations.any?
+        lines << ""
+        lines << "self-declarations of the operator (listed, not checked, not counted): #{@declarations.size}"
+        @declarations.each { |d| lines << format("%-12s %s", d["criterion"], d["evidence"]) }
+      end
       lines << ""
       lines << "not run: #{@not_run.size} passport criteria (checked by dpplint)" if @not_run.any?
       lines << NOTICE
@@ -75,6 +89,8 @@ module DppValidator
     def test_instance_text = "our own test instance, #{[@test_instance['software'], @test_instance['version']].compact.join(' ')}"
 
     private
+
+    def declarations_h = { "notice" => DECLARATIONS_NOTICE, "items" => @declarations }
 
     def by_reason_text(tally) = tally["skipped_by_reason"].map { |code, n| "#{n} #{code}" }.join(", ")
 

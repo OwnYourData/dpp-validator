@@ -215,4 +215,66 @@ class RunnerTest < ValidatorTestCase
     assert_equal "failed", by_id["DPP-API-021"]["result"]
     assert_match(/step 1 .*HTTP status is 404, expected 200/, by_id["DPP-API-021"]["messages"].first["message"])
   end
+
+  # Test vectors of DPP-ACC-012 (version 2): the answer to a fine-granular read
+  # of the controlled test element without credentials.
+  test "DPP-ACC-012: 401 with a challenge passes, 401 without one and 403 give warnings, 200 and 404 fail" do
+    criterion = DppValidator::CriteriaRepository.new(CRITERIA_DIR).criteria.find { |c| c.id == "DPP-ACC-012" }
+    assert_operator criterion["version"], :>=, 2
+    path = "/dpp/v1/dpps/#{DppValidator::Placeholders.percent_encode(DPP_ID)}/elements/%24.#{FakeDppService::CONTROLLED}"
+    vectors = [
+      [401, { "WWW-Authenticate" => "Bearer" }, "passed", []],
+      [401, { "WWW-Authenticate" => 'Bearer error="invalid_token"' }, "passed", []],
+      [401, {}, "warning", ["warning: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): header WWW-Authenticate is missing"]],
+      [403, {}, "warning", ["warning: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status 403 is listed in warn_if_status"]],
+      [404, {}, "failed", ["error: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 404, expected 401"]],
+      [200, {}, "failed", ["error: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 200, expected 401"]]
+    ]
+    vectors.each do |status, headers, result, messages|
+      s = server(protocols: %w[h2]) { |r| r.path == path ? json(status, { "statusCode" => "x" }, headers) : json(500, {}) }
+      outcome = run_check(criterion["check"], s.url("/dpp/v1"), features: %w[fine-granular-api access-levels],
+                                                                 test_data: { "controlledElementIdPath" => "$.#{FakeDppService::CONTROLLED}" })
+      assert_equal result, outcome.result, "#{status} #{headers.inspect}: #{messages_text(outcome).inspect}"
+      assert_equal messages, messages_text(outcome), "#{status} #{headers.inspect}"
+      assert_equal [path], s.received.map(&:path)
+    end
+  end
+
+  test "self-declarations of the entry are listed with statement and evidence, apart from the results and never counted" do
+    repository = DppValidator::CriteriaRepository.new(CRITERIA_DIR)
+    declarations = [
+      { "criterion" => "DPP-ACC-015", "statement" => "  Every actor is identified by a DID.\n", "evidence" => "https://example.org/doc#auth" },
+      { "criterion" => "DPP-XYZ-999", "statement" => "Not a criterion of the checkout.", "evidence" => "https://example.org/other" }
+    ]
+    plain = run_with(repository)
+    report = run_with(repository, service(declarations: declarations))
+
+    listed = report.to_h["declarations"]
+    assert_equal DppValidator::Report::DECLARATIONS_NOTICE, listed["notice"]
+    first, second = listed["items"]
+    acc015 = repository.criteria.find { |c| c.id == "DPP-ACC-015" }
+    assert_equal %w[DPP-ACC-015 Every\ actor\ is\ identified\ by\ a\ DID. https://example.org/doc#auth],
+                 first.values_at("criterion", "statement", "evidence")
+    assert_equal [acc015["title"], acc015["status"]], first.values_at("title", "status")
+    url = repository.description_url("DPP-ACC-015")
+    url ? assert_equal(url, first["description_url"]) : refute(first.key?("description_url"))
+    assert_equal({ "criterion" => "DPP-XYZ-999", "statement" => "Not a criterion of the checkout.", "evidence" => "https://example.org/other" },
+                 second)
+
+    by_id = results(report)
+    assert_equal %w[skipped not_evaluated], by_id["DPP-ACC-015"].values_at("result", "reason_code")
+    assert_match(/declaration of the operator is listed under self-declarations; declarations are not evaluated and never count as passed/,
+                 by_id["DPP-ACC-015"]["reason"])
+    assert_match(/the entry has no declaration for it; declarations are not evaluated/, by_id["DPP-ACC-014"]["reason"])
+    refute by_id["DPP-ACC-015"]["counted"]
+    assert_equal plain.summary, report.summary
+    assert_equal plain.proposed_summary, report.proposed_summary
+    assert_equal plain.results.map { |r| r.except("reason", "details") }, report.results.map { |r| r.except("reason", "details") }
+
+    refute plain.to_h.key?("declarations")
+    text = report.to_text
+    assert_includes text, "self-declarations of the operator (listed, not checked, not counted): 2"
+    assert_includes text, "DPP-ACC-015  https://example.org/doc#auth"
+    refute_includes plain.to_text, "self-declarations of the operator"
+  end
 end

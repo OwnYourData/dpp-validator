@@ -39,6 +39,11 @@ module DppValidator
     def licence = data["licence"] || {}
     def example_passports = Array(data["example_passports"])
 
+    # Self-declarations of the operator (declarations): criterion, statement
+    # and evidence URL, as the entry gives them. Entries from our research have
+    # none.
+    def declarations = Array(data["declarations"]).select { |d| d.is_a?(Hash) }
+
     # "daily" for operator entries, "weekly" for research entries: when the
     # service and its example passports are checked.
     def cadence = research? ? "weekly" : "daily"

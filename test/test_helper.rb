@@ -39,11 +39,13 @@ class ValidatorTestCase < DpplintTestCase
     DppValidator::Config.new(connect_timeout: 2, read_timeout: 1.5, cert_store: TestCerts.store, **overrides)
   end
 
-  def service_for(base, features: %w[fine-granular-api], test_data: {}, not_implemented: [])
+  # extra: further fields of the entry, e.g. declarations.
+  def service_for(base, features: %w[fine-granular-api], test_data: {}, not_implemented: [], **extra)
     DppValidator::Service.new(
-      "id" => "test-service", "name" => "Test service", "operator" => { "name" => "Test" },
-      "api_base" => base, "features" => features, "not_implemented" => not_implemented, "credentials" => "none",
-      "test_data" => { "dppId" => DPP_ID, "productId" => PRODUCT_ID, "elementIdPath" => "$.ProductIdentification" }.merge(test_data)
+      { "id" => "test-service", "name" => "Test service", "operator" => { "name" => "Test" },
+        "api_base" => base, "features" => features, "not_implemented" => not_implemented, "credentials" => "none",
+        "test_data" => { "dppId" => DPP_ID, "productId" => PRODUCT_ID, "elementIdPath" => "$.ProductIdentification" }.merge(test_data) }
+        .merge(extra.transform_keys(&:to_s))
     )
   end
 

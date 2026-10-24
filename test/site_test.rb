@@ -128,6 +128,7 @@ class SiteTest < ValidatorTestCase
       refute_includes a, DppValidator::Site::RESEARCH_NOTICE
       assert a.index("DPP-DEX-006") < a.index("DPP-API-013"), "failed before passed"
       assert a.index("DPP-API-013") < a.index("DPP-OPS-006"), "proposed after active"
+      refute_includes a, "Self-declarations of the operator"
 
       b = File.read(File.join(out, "services", "svc-b.html"), encoding: "UTF-8")
       assert_page_rules(b, "../")
@@ -147,6 +148,42 @@ class SiteTest < ValidatorTestCase
       assert_equal File.binread(DppValidator::Site::MARK), File.binread(File.join(out, "oyd-mark.svg"))
       available = JSON.parse(File.read(File.join(out, "available-services.json"), encoding: "UTF-8"))
       assert_equal %w[svc-a svc-b svc-c], available["services"].map { |s| s["id"] }
+    end
+  end
+
+  test "self-declarations get a section of their own after the checks, without result, and are not counted" do
+    Dir.mktmpdir do |dir|
+      r = result("svc-a", "Service A", [
+        criterion("DPP-API-013", "active", "passed"),
+        criterion("DPP-ACC-015", "proposed", "skipped", method: "self-declared", reason_code: "not_evaluated",
+                  reason: "self-declared criterion: the declaration of the operator is listed under self-declarations")
+      ])
+      r["declarations"] = {
+        "notice" => DppValidator::Report::DECLARATIONS_NOTICE,
+        "items" => [
+          { "criterion" => "DPP-ACC-015", "title" => "Actors are identified", "status" => "proposed",
+            "description_url" => "https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-acc-015",
+            "statement" => "Every <actor> presents a DID & a token.", "evidence" => "https://example.org/doc?a=1&b=2#auth" },
+          { "criterion" => "DPP-XYZ-999", "statement" => "Unknown criterion.", "evidence" => "https://example.org/other" }
+        ]
+      }
+      _, out = build(dir, services: [entry("svc-a", "Service A")], results: { "svc-a" => r })
+      a = File.read(File.join(out, "services", "svc-a.html"), encoding: "UTF-8")
+      assert_page_rules(a, "../")
+      assert_includes a, %(<h2 id="self-declarations">Self-declarations of the operator</h2>)
+      assert_includes a, DppValidator::Report::DECLARATIONS_NOTICE
+      assert_includes a, %(<div class="decl" id="declaration-dpp-acc-015">)
+      assert_includes a, %(href="https://github.com/OwnYourData/dpp-criteria/blob/c5a0a5c/criteria/README.md#dpp-acc-015")
+      assert_includes a, "Actors are identified <span class=\"muted\">(criterion proposed)</span>"
+      assert_includes a, "<p>Every &lt;actor&gt; presents a DID &amp; a token.</p>"
+      assert_includes a, %(Evidence: <a href="https://example.org/doc?a=1&amp;b=2#auth">https://example.org/doc?a=1&amp;b=2#auth</a>)
+      assert_includes a, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/xyz/DPP-XYZ-999.yaml"
+      assert_includes a, %(<li><a href="#declaration-dpp-acc-015">Self-declaration of the operator</a></li>)
+      assert_equal 1, a.scan("#declaration-").size, "only the self-declared criterion links to its declaration"
+      section = a[a.index(%(<h2 id="self-declarations">))..]
+      assert a.rindex("</table>") < a.index(%(<h2 id="self-declarations">)), "after the table of the checks"
+      refute_includes section[0, section.index(%(<p class="notice">#{DppValidator::Report::NOTICE}))], "badge"
+      assert_includes a, "1 of 2 automated checks passed"
     end
   end
 
