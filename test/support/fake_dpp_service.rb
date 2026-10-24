@@ -2,9 +2,10 @@
 # dpp-criteria expect: HTTP/2 only, EN 18222 read methods, the compressed
 # representation by default and the full one with representation=full (400
 # for other values), 404 for unknown passports, 400 for malformed requests,
-# 401 for writes without credentials. Its passports have one controlled data
-# element (CONTROLLED) that it never delivers without credentials: it is left
-# out of every read, and ReadDataElement answers 401 for it.
+# 401 with a Bearer challenge for writes without credentials. Its passports
+# have one controlled data element (CONTROLLED) that it never delivers without
+# credentials: it is left out of every read, and ReadDataElement answers 401
+# with a Bearer challenge for it.
 module FakeDppService
   CONTROLLED = "RepairInformation".freeze
 
@@ -37,7 +38,11 @@ module FakeDppService
   def handler(dpp_id, product_id)
     enc = ->(v) { DppValidator::Placeholders.percent_encode(v) }
     body = JSON.generate(passport(dpp_id, product_id))
-    json = ->(status, value) { [status, { "Content-Type" => "application/json" }, value.is_a?(String) ? value : JSON.generate(value)] }
+    json = lambda do |status, value|
+      headers = { "Content-Type" => "application/json" }
+      headers["WWW-Authenticate"] = "Bearer" if status == 401
+      [status, headers, value.is_a?(String) ? value : JSON.generate(value)]
+    end
     lambda do |r|
       path, query = r.path.split("?", 2)
       case [r.method, path]

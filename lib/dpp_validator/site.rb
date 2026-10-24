@@ -8,8 +8,9 @@ module DppValidator
   #   results (dpplint for the example passports, dpp-validator for the
   #   service);
   # - services/<id>.html: one page per entry with the details of the entry,
-  #   the criteria of the latest validator run and the dpplint results of its
-  #   example passports;
+  #   the criteria of the latest validator run, the self-declarations of the
+  #   operator in a section of their own (not checked, never counted) and the
+  #   dpplint results of its example passports;
   # - results/<id>.json and linter/<id>.json: the JSON results;
   # - available-services.json (Available).
   #
@@ -221,6 +222,7 @@ module DppValidator
         #{lint_section(s, lint)}
         <h2>Service checks &middot; dpp-validator</h2>
         #{validator_section(s, result)}
+        #{declarations_section(result)}
         <p class="notice">#{h(Report::NOTICE)}</p>
       HTML
     end
@@ -271,8 +273,41 @@ module DppValidator
         <div class="scroll"><table>
         <thead><tr><th>Criterion</th><th>Requirement and findings</th><th>Level</th><th>Result</th></tr></thead>
         <tbody>
-        #{rows(r['criteria'] || [], commit)}
+        #{rows(r['criteria'] || [], commit, declared_ids(r))}
         </tbody></table></div>
+      HTML
+    end
+
+    def declarations(r) = Array(r&.dig("declarations", "items"))
+
+    def declared_ids(r) = declarations(r).map { |d| d["criterion"] }
+
+    def declaration_anchor(id) = "declaration-#{id.to_s.downcase}"
+
+    # The self-declarations of the operator, apart from the checks: statement
+    # and evidence link as given, no result and no badge.
+    def declarations_section(r)
+      items = declarations(r)
+      return "" if items.empty?
+
+      commit = r.dig("dpp_criteria", "commit").to_s
+      blocks = items.map do |d|
+        id = d["criterion"].to_s
+        url = d["description_url"] ||
+              "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{id.split('-')[1].to_s.downcase}/#{id}.yaml"
+        status = d["status"] ? %( <span class="muted">(criterion #{h(d['status'])})</span>) : ""
+        <<~HTML.chomp
+          <div class="decl" id="#{h(declaration_anchor(id))}">
+          <p><span class="id"><a href="#{h(url)}" title="Description of the criterion">#{h(id)}</a></span> #{h(d['title'])}#{status}</p>
+          <p>#{h(d['statement'])}</p>
+          <p class="muted">Evidence: #{link(d['evidence'], d['evidence'])}</p>
+          </div>
+        HTML
+      end
+      <<~HTML
+        <h2 id="self-declarations">Self-declarations of the operator</h2>
+        <p class="notice">#{h(r.dig('declarations', 'notice') || Report::DECLARATIONS_NOTICE)}</p>
+        #{blocks.join("\n")}
       HTML
     end
 
@@ -288,10 +323,11 @@ module DppValidator
       end
     end
 
-    def rows(criteria, commit)
+    def rows(criteria, commit, declared = [])
       criteria.sort_by { |c| [c["counted"] || c["status"] == "active" ? 0 : 1, ORDER.fetch(c["result"], 9), c["id"]] }.map do |c|
         notes = Array(c["messages"]).map { |m| "<li>#{h(m['severity'])}: #{h(m['message'])}</li>" }
         notes << "<li>#{h(c['reason'])}</li>" if c["reason"]
+        notes << %(<li><a href="##{h(declaration_anchor(c['id']))}">Self-declaration of the operator</a></li>) if declared.include?(c["id"])
         marker = c["status"] == "active" ? "" : %( <span class="muted">(#{h(c['status'])}, not counted)</span>)
         link = c["description_url"] ||
                "#{CRITERIA_REPO}/blob/#{commit}/criteria/#{c['id'].to_s.split('-')[1].to_s.downcase}/#{c['id']}.yaml"
@@ -350,6 +386,9 @@ module DppValidator
           .failed { color: var(--failed); } .skipped { color: var(--skipped); }
           dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 8px 0; font-size: .92rem; }
           dt { color: var(--muted); } dd { margin: 0; overflow-wrap: anywhere; }
+          .decl { border-left: 3px solid var(--line); padding: 2px 0 2px 12px; margin: 14px 0; }
+          .decl p { margin: 4px 0; overflow-wrap: anywhere; }
+          .decl .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; }
           footer { margin-top: 56px; padding: 24px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
           footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
           footer a { color: var(--muted); }

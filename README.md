@@ -21,6 +21,10 @@ covers the behaviour of the DPP service and its API.
   `reason_code: not_evaluated`.
 - `automated-auth` and `self-declared` criteria are listed as `skipped` with
   the reason and a `reason_code`; passport criteria are listed under `not_run`.
+- The self-declarations of an entry (`declarations`) are listed with the
+  statement and the link to the evidence as the operator gives them, in the
+  JSON result and in a section of their own on the result page, apart from the
+  checks. They are not checked and never count as passed.
 - Features a service lists under `not_implemented` give `skipped` with
   `reason_code: not_implemented`; features it does not declare at all give
   `not_applicable`.
@@ -146,6 +150,14 @@ checks are meaningless behind a proxy that terminates TLS.
       "target": "service", "method": "automated", "check_type": "http", "result": "passed",
       "messages": [], "details": ["step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"], "counted": false }
   ],
+  "declarations": {
+    "notice": "Statements of the operator about the service, with a link to its evidence, listed as given. ...",
+    "items": [
+      { "criterion": "DPP-ACC-015", "title": "...", "status": "proposed",
+        "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/<commit>/criteria/README.md#dpp-acc-015",
+        "statement": "...", "evidence": "https://..." }
+    ]
+  },
   "not_run": [ { "id": "DPP-DAT-014", "target": "passport", "reason": "..." } ]
 }
 ```
@@ -159,7 +171,9 @@ instance has `test_instance` (`software`, `version`, `release`, `images`,
 skipped criteria per `reason_code` (only codes that occur).
 `description_url` links to the readable description of the criterion in
 `criteria/README.md` of the dpp-criteria commit used; it is absent if that
-commit has no such page.
+commit has no such page. `declarations` is present only if the entry has
+self-declarations; `title`, `status` and `description_url` of an item come
+from its criterion and are absent if the commit used has no such criterion.
 
 ## Linter result
 
