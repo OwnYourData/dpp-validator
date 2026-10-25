@@ -9,7 +9,9 @@ module DppValidator
   # have a warning (they are included in passed). Skipped criteria are not
   # counted. summary_text is the text of dpplint or dpp-validator, e.g.
   # "5 of 5 automated checks passed"; a page shows it as
-  # "5 of 5 passed · 1 warning".
+  # "5 of 5 passed · 1 warning". self_declarations is the number of
+  # self-declarations listed in the latest validator result; they are not
+  # checked and not counted.
   class Available
     NOTICE = "Results of automated checks only, from a research project that shares what we currently know. " \
              "The list is not complete and no legal assessment; the results are no certification and establish no " \
@@ -108,6 +110,7 @@ module DppValidator
         "test_instance" => result["test_instance"]&.slice("software", "version", "release"),
         "summary_text" => summary["text"], "passed" => passed, "total" => passed + failed, "failed" => failed,
         "warnings" => summary["warnings"].to_i, "proposed_failed" => summary.dig("proposed_not_counted", "failed").to_i,
+        "self_declarations" => Array(result.dig("declarations", "items")).size,
         "checked_at" => result["run_at"].to_s[0, 10]
       ).compact
     end

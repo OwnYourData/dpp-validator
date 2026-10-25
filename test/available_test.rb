@@ -58,7 +58,7 @@ class AvailableTest < ValidatorTestCase
     assert_equal({ "status" => "checked", "mode" => "full", "cadence" => "daily",
                    "details_url" => "https://pages.example/v/services/ours.html",
                    "summary_text" => "14 of 15 automated checks passed", "passed" => 14, "total" => 15, "failed" => 1,
-                   "warnings" => 2, "proposed_failed" => 3, "checked_at" => "2026-10-18" }, ours["validator"])
+                   "warnings" => 2, "proposed_failed" => 3, "self_declarations" => 0, "checked_at" => "2026-10-18" }, ours["validator"])
   end
 
   test "entries without results, without public passports or not checked say why" do
@@ -72,5 +72,14 @@ class AvailableTest < ValidatorTestCase
     assert_nil p["summary_text"]
     assert_equal "dpplint: HTTP 502", p["note"]
     assert_equal "2026-10-12", p["checked_at"]
+  end
+
+  test "the validator part counts the self-declarations of the latest result" do
+    services = [service("ours", "Our service", source: "operator", check: { "mode" => "full-daily" })]
+    items = %w[DPP-ACC-015 DPP-DGA-001 DPP-SEC-022].map { |id| { "criterion" => id, "statement" => "s", "evidence" => "https://e.example" } }
+    results = { "ours" => { "run_at" => "2026-10-25T04:17:00Z", "summary" => { "passed" => 15, "failed" => 0 },
+                            "declarations" => { "notice" => "n", "items" => items } } }
+    data = DppValidator::Available.new(services: services, results: results, lints: {}, site_url: "https://pages.example/v", now: NOW).to_h
+    assert_equal 3, data["services"].first["validator"]["self_declarations"]
   end
 end

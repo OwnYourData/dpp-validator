@@ -6,7 +6,7 @@ module DppValidator
   #
   # - index.html: overview of every entry of services/ with its latest
   #   results (dpplint for the example passports, dpp-validator for the
-  #   service);
+  #   service, with the number of self-declarations);
   # - services/<id>.html: one page per entry with the details of the entry,
   #   the criteria of the latest validator run, the self-declarations of the
   #   operator in a section of their own (not checked, never counted) and the
@@ -175,7 +175,7 @@ module DppValidator
           <td>#{h(entry_text(s))}</td>
           <td>#{h(s.licence['text'])}</td>
           <td>#{passport_texts(s, lints[s.id]).join('<br>')}</td>
-          <td>#{h(check_text(s, results[s.id]))}</td></tr>
+          <td>#{h(check_text(s, results[s.id]))}#{declarations_note(s, results[s.id])}</td></tr>
         HTML
       end
       <<~HTML
@@ -279,6 +279,15 @@ module DppValidator
     end
 
     def declarations(r) = Array(r&.dig("declarations", "items"))
+
+    # Overview: the number of self-declarations in the latest result, linked to
+    # their section on the detail page; nothing without any.
+    def declarations_note(s, r)
+      n = declarations(r).size
+      return "" if n.zero?
+
+      %(<br><a class="muted" href="services/#{h(s.id)}.html#self-declarations">#{n} self-declaration#{'s' unless n == 1}, not counted</a>)
+    end
 
     def declared_ids(r) = declarations(r).map { |d| d["criterion"] }
 
