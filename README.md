@@ -222,7 +222,7 @@ research, each by name.
       "validator": { "status": "checked", "mode": "full", "cadence": "daily",
                      "details_url": "https://ownyourdata.github.io/dpp-validator/services/ownyourdata-dpp-service.html",
                      "summary_text": "15 of 15 automated checks passed", "passed": 15, "total": 15, "failed": 0,
-                     "warnings": 0, "proposed_failed": 1, "checked_at": "2026-10-18" }
+                     "warnings": 0, "proposed_failed": 1, "self_declarations": 5, "checked_at": "2026-10-18" }
     }
   ]
 }
@@ -244,7 +244,9 @@ shows these numbers as "5 of 5 passed · 1 warning".
   `no_public_instance` or `no_en18222_paths`. `mode` is `full`, `read-only`
   or `test-instance` (in full on our own short-lived test instance; then
   `test_instance` gives `software`, `version` and `release` of the last run),
-  `cadence` `daily` or `weekly`.
+  `cadence` `daily` or `weekly`. `self_declarations` is the number of
+  self-declarations in the latest result; they are not checked and not
+  counted.
 
 ## Layout
 

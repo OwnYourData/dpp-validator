@@ -129,6 +129,7 @@ class SiteTest < ValidatorTestCase
       assert a.index("DPP-DEX-006") < a.index("DPP-API-013"), "failed before passed"
       assert a.index("DPP-API-013") < a.index("DPP-OPS-006"), "proposed after active"
       refute_includes a, "Self-declarations of the operator"
+      refute_includes index, "self-declaration"
 
       b = File.read(File.join(out, "services", "svc-b.html"), encoding: "UTF-8")
       assert_page_rules(b, "../")
@@ -179,6 +180,10 @@ class SiteTest < ValidatorTestCase
       assert_includes a, %(Evidence: <a href="https://example.org/doc?a=1&amp;b=2#auth">https://example.org/doc?a=1&amp;b=2#auth</a>)
       assert_includes a, "dpp-criteria/blob/c5a0a5ce389ac662ae7612a1bc50d520c09991d9/criteria/xyz/DPP-XYZ-999.yaml"
       assert_includes a, %(<li><a href="#declaration-dpp-acc-015">Self-declaration of the operator</a></li>)
+      index = File.read(File.join(out, "index.html"), encoding: "UTF-8")
+      assert_includes index, %(<br><a class="muted" href="services/svc-a.html#self-declarations">2 self-declarations, not counted</a>)
+      available = JSON.parse(File.read(File.join(out, "available-services.json"), encoding: "UTF-8"))
+      assert_equal 2, available["services"].first["validator"]["self_declarations"]
       assert_equal 1, a.scan("#declaration-").size, "only the self-declared criterion links to its declaration"
       section = a[a.index(%(<h2 id="self-declarations">))..]
       assert a.rindex("</table>") < a.index(%(<h2 id="self-declarations">)), "after the table of the checks"
