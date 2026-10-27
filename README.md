@@ -54,7 +54,12 @@ covers the behaviour of the DPP service and its API.
 - Requests carry the User-Agent
   `dpp-validator/<version> (+https://github.com/OwnYourData/dpp-validator; office@ownyourdata.eu)`
   and go one after the other.
-- Not yet: rating over several days (`history`, DPP-ID-002).
+- Passport criteria with `check.history` (DPP-ID-002, the product
+  identifier stays resolvable) are rated by dpp-validator itself, from the
+  results of the criterion they name (DPP-ID-001) in the stored runs of the
+  last days on the branch `results`; dpplint skips them. The rating replaces
+  dpplint's entry in the dpplint result of the passport (see "Linter
+  result").
 
 ## How it works
 
@@ -97,6 +102,11 @@ instances:
 docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
 docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence weekly --output out
 ```
+
+`--history <dir>` names the directory `runs/` of the stored results (a
+checkout of the branch `results`); the workflow passes it, so that DPP-ID-002
+is rated from it. Without it, DPP-ID-002 stays as dpplint reports it
+(`skipped`).
 
 `services --cadence daily|weekly` lists the entries whose service is run with
 that cadence, `services --test-instances` those checked on our own test
@@ -195,6 +205,27 @@ from its criterion and are absent if the commit used has no such criterion.
 
 `status` is `checked` or `error` (with `error`, e.g. when dpplint cannot be
 reached).
+
+A criterion with `check.history` (DPP-ID-002) is rated by dpp-validator from
+the stored runs (`--history`), and its entry carries the rating instead of
+dpplint's `skipped`:
+
+```json
+{ "id": "DPP-ID-002", "title": "...", "status": "proposed", "result": "passed",
+  "message": "DPP-ID-001 passed in all 9 runs from 2026-10-18 to 2026-10-26",
+  "history": { "criterion": "DPP-ID-001", "period_days": 30, "runs": 9, "failed": 0,
+               "from": "2026-10-18", "to": "2026-10-26" } }
+```
+
+The result of `history.criterion` is taken from the stored runs of the last
+`period_days` days (`runs/<date>/linter/<id>.json`, one per day; runs of
+today are replaced by this run) and from this run. A run in which it has no
+result is left out. `failed` after `fail_after_consecutive_runs` consecutive
+failed runs within the period, `warning` after single failed runs, `passed`
+if it passed in every run; with fewer runs than `fail_after_consecutive_runs`
+the criterion is `skipped` (`not_evaluated`). The summary of the passport is
+then counted again, as dpplint counts. The result page shows such a
+criterion with its message also while it is proposed.
 
 ## available-services.json
 

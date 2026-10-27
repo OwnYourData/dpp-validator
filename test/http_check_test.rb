@@ -165,7 +165,9 @@ class HttpCheckTest < ValidatorTestCase
     assert_equal "not_applicable", outcome.reason_code
     outcome = run_check(check(get("/warn", { "status" => [200], "json" => [{ "path" => "$.x", "exists" => true }] }, warn_if_status: [400])), base(s))
     assert_result "warning", outcome
-    assert_equal ["warning: step 1 (GET /warn): HTTP status 400 is listed in warn_if_status"], messages_text(outcome)
+    assert_equal ["warning: step 1 (GET /warn): HTTP status is 400, expected 200; 400 gives a warning, not a failure"], messages_text(outcome)
+    outcome = run_check(check(get("/warn", {}, warn_if_status: [400])), base(s))
+    assert_equal ["warning: step 1 (GET /warn): HTTP status is 400; 400 gives a warning, not a failure"], messages_text(outcome)
   end
 
   test "skip_if_status after a failed step fails the criterion; after passed or warned steps it skips" do

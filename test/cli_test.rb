@@ -132,5 +132,8 @@ class CliTest < ValidatorTestCase
     status, _out, err = cli("run", "--service", "x", "--criteria", "/nonexistent")
     assert_equal 2, status
     assert_match(/not a dpp-criteria checkout/, err)
+    status, _out, err = cli("cycle", "--cadence", "daily", "--history", "/nonexistent/runs")
+    assert_equal 2, status
+    assert_match(%r{--history /nonexistent/runs is not a directory}, err)
   end
 end
