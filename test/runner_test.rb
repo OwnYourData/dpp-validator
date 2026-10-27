@@ -226,7 +226,7 @@ class RunnerTest < ValidatorTestCase
       [401, { "WWW-Authenticate" => "Bearer" }, "passed", []],
       [401, { "WWW-Authenticate" => 'Bearer error="invalid_token"' }, "passed", []],
       [401, {}, "warning", ["warning: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): header WWW-Authenticate is missing"]],
-      [403, {}, "warning", ["warning: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status 403 is listed in warn_if_status"]],
+      [403, {}, "warning", ["warning: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 403, expected 401; 403 gives a warning, not a failure"]],
       [404, {}, "failed", ["error: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 404, expected 401"]],
       [200, {}, "failed", ["error: step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 200, expected 401"]]
     ]

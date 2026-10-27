@@ -239,7 +239,7 @@ module DppValidator
         next "#{head}<p class=\"muted\">#{h(r['error'])}</p>" unless r["status"] == "checked"
 
         sm = r["summary"]
-        counted = Array(r["criteria"]).select { |c| c["status"] == "active" }
+        shown = Array(r["criteria"]).select { |c| c["status"] == "active" || c.key?("history") }
         <<~HTML.chomp
           #{head}
           <div class="summary"><strong>#{h(sm['text'])}</strong> (#{h(sm['failed'])} failed, #{h(sm['warnings'])} with warnings, #{h(sm['skipped'])} skipped) &middot; checked #{h(lint['checked_at'].to_s[0, 10])}
@@ -247,16 +247,20 @@ module DppValidator
           <div class="scroll"><table>
           <thead><tr><th>Criterion</th><th>Title</th><th>Result</th></tr></thead>
           <tbody>
-          #{counted.sort_by { |c| [ORDER.fetch(c['result'], 9), c['id']] }.map { |c| lint_row(c) }.join("\n")}
+          #{shown.sort_by { |c| [c['status'] == 'active' ? 0 : 1, ORDER.fetch(c['result'], 9), c['id']] }.map { |c| lint_row(c) }.join("\n")}
           </tbody></table></div>
         HTML
       end.join("\n")
     end
 
+    # A criterion that dpp-validator rates from the stored runs (history) is
+    # shown with its message, also while it is proposed.
     def lint_row(c)
       id = c["description_url"] ? link(c["description_url"], c["id"]) : h(c["id"])
       reason = c["reason_code"] ? %(<br><span class="muted">#{h(reason_label(c['reason_code']))}</span>) : ""
-      %(<tr><td class="id">#{id}</td><td>#{h(c['title'])}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{reason}</td></tr>)
+      marker = c["status"] == "active" ? "" : %( <span class="muted">(#{h(c['status'])}, not counted)</span>)
+      note = c["message"] ? %(<ul class="msg"><li>rated by dpp-validator from its stored runs: #{h(c['message'])}</li></ul>) : ""
+      %(<tr><td class="id">#{id}</td><td>#{h(c['title'])}#{marker}#{note}</td><td><span class="badge #{h(c['result'])}">#{h(c['result'])}</span>#{reason}</td></tr>)
     end
 
     def validator_section(s, r)

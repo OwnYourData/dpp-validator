@@ -17,13 +17,15 @@ module DppValidator
   # is reported as an error and not run.
   #
   # Results go to <output>/<id>.json (dpp-validator) and
-  # <output>/linter/<id>.json (dpplint). Services are handled one after the
-  # other; an error with one entry is reported and does not stop the others.
+  # <output>/linter/<id>.json (dpplint). With history_dir (the directory runs/
+  # of the stored results), the passport criteria with check.history are rated
+  # from it (HistoryRating). Services are handled one after the other; an
+  # error with one entry is reported and does not stop the others.
   class Cycle
     CADENCES = %w[daily weekly].freeze
 
     def initialize(repository:, cadence:, output_dir:, linter: Linter.new, config_for: ->(read_only) { Config.new(read_only: read_only) },
-                   out: $stdout, now: Time.now.utc, test_instances_dir: nil)
+                   out: $stdout, now: Time.now.utc, test_instances_dir: nil, history_dir: nil)
       raise Error, "unknown cadence #{cadence} (daily or weekly)" unless CADENCES.include?(cadence)
 
       @repository = repository
@@ -34,6 +36,7 @@ module DppValidator
       @out = out
       @now = now
       @test_instances_dir = test_instances_dir
+      @history = history_dir && HistoryRating.new(criteria: repository.criteria, runs_dir: history_dir, today: @now.utc.to_date)
     end
 
     # Returns { runs: [ids], lints: [ids], errors: [messages] }.
@@ -88,6 +91,7 @@ module DppValidator
 
     def lint_service(service, done)
       result = @linter.run(service)
+      result = @history.apply(result) if @history
       write(File.join(@output_dir, "linter", "#{service.id}.json"), JSON.pretty_generate(result))
       result["passports"].each do |p|
         @out.puts "dpplint #{service.id} #{p['label']}: #{p.dig('summary', 'text') || p['error']}"

@@ -4,7 +4,8 @@ name: daily
 # every day against the operator entries (in full) and their example
 # passports (dpplint), on Mondays also against the entries from our research
 # (read-only, or in full on our own short-lived test instances, see
-# test-instances/) and their example passports. Keeps the JSON results on the
+# test-instances/) and their example passports. Rates DPP-ID-002 of the
+# example passports from the stored runs, keeps the JSON results on the
 # branch "results" (runs/<date>/ and latest/) and publishes the result pages
 # and available-services.json on GitHub Pages.
 
@@ -41,10 +42,22 @@ jobs:
       - name: Test suite
         run: docker run --rm oydeu/dpp-validator:latest test
 
+      - name: Check out the stored results
+        run: |
+          if git ls-remote --exit-code --heads origin results >/dev/null; then
+            git fetch origin results
+            git worktree add history origin/results
+            git -C history switch -C results
+          else
+            git worktree add --orphan -b results history
+          fi
+          mkdir -p history/runs
+
       - name: Daily checks of the operator entries
         run: |
           mkdir -p out
-          docker run --rm -v "$PWD/out:/app/out" oydeu/dpp-validator:latest cycle --cadence daily --output out
+          docker run --rm -v "$PWD/out:/app/out" -v "$PWD/history:/app/history:ro" oydeu/dpp-validator:latest \
+            cycle --cadence daily --output out --history history/runs
           ls -lR out
 
       - name: Weekly checks of the entries from our research (Mondays)
@@ -61,7 +74,8 @@ jobs:
             "test-instances/$id/instance.sh" start "test-instance-info/$id.json" || echo "::warning::test instance $id did not start"
           done
           docker run --rm --network dpp-validator-test -v "$PWD/out:/app/out" -v "$PWD/test-instance-info:/app/test-instance-info" \
-            oydeu/dpp-validator:latest cycle --cadence weekly --output out --test-instances test-instance-info
+            -v "$PWD/history:/app/history:ro" \
+            oydeu/dpp-validator:latest cycle --cadence weekly --output out --test-instances test-instance-info --history history/runs
           ls -lR out
 
       - name: Discard the test instances
@@ -74,13 +88,6 @@ jobs:
       - name: Keep the results on the branch results
         run: |
           date=$(date -u +%F)
-          if git ls-remote --exit-code --heads origin results >/dev/null; then
-            git fetch origin results
-            git worktree add history origin/results
-            git -C history switch -C results
-          else
-            git worktree add --orphan -b results history
-          fi
           mkdir -p "history/runs/$date/linter" history/latest/linter
           cp out/*.json "history/runs/$date/"
           cp out/*.json history/latest/

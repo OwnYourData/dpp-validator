@@ -55,6 +55,20 @@ module DppValidator
       head.merge("status" => "error", "error" => "product identifier cannot be sent to dpplint: #{e.message}")
     end
 
+    # The summary of one passport counted from its criteria, as dpplint counts
+    # (used when dpp-validator rates a criterion itself, see HistoryRating).
+    def self.summary_of(criteria)
+      active = criteria.select { |c| c["status"] == "active" }
+      counted = active.select { |c| %w[passed warning failed].include?(c["result"]) }
+      passed = counted.count { |c| c["result"] != "failed" }
+      {
+        "text" => "#{passed} of #{counted.size} automated checks passed", "passed" => passed, "failed" => counted.size - passed,
+        "total" => counted.size, "warnings" => active.count { |c| c["result"] == "warning" },
+        "skipped" => active.count { |c| c["result"] == "skipped" },
+        "proposed_failed" => criteria.count { |c| c["status"] == "proposed" && c["result"] == "failed" }
+      }
+    end
+
     # Page of dpplint that shows the check of this passport to people.
     def lint_url(product_id) = self.class.lint_url(product_id, @base_url)
 

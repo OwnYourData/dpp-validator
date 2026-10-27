@@ -3,7 +3,7 @@ require "fileutils"
 
 module DppValidator
   # dpp-validator run --service <id or file> [--criteria DIR] [--output FILE] [--read-only] [--test-instance FILE]
-  # dpp-validator cycle --cadence daily|weekly [--criteria DIR] [--output DIR] [--dpplint URL] [--test-instances DIR]
+  # dpp-validator cycle --cadence daily|weekly [--criteria DIR] [--output DIR] [--dpplint URL] [--test-instances DIR] [--history DIR]
   # dpp-validator services [--criteria DIR] [--cadence daily|weekly | --test-instances]
   # dpp-validator site --results DIR --output DIR [--criteria DIR] [--this-service ID] [--site-url URL]
   # dpp-validator version
@@ -11,7 +11,7 @@ module DppValidator
     USAGE = <<~TEXT.freeze
       Usage:
         dpp-validator run --service <id|file> [--criteria DIR] [--output FILE|-] [--read-only] [--test-instance FILE]
-        dpp-validator cycle --cadence daily|weekly [--criteria DIR] [--output DIR] [--dpplint URL] [--test-instances DIR]
+        dpp-validator cycle --cadence daily|weekly [--criteria DIR] [--output DIR] [--dpplint URL] [--test-instances DIR] [--history DIR]
         dpp-validator services [--criteria DIR] [--cadence daily|weekly | --test-instances]
         dpp-validator site --results DIR --output DIR [--criteria DIR] [--this-service ID] [--site-url URL]
         dpp-validator version
@@ -37,6 +37,10 @@ module DppValidator
                       services: list the entries whose service is run with that
                       cadence.
       --dpplint       cycle: base URL of dpplint (default: #{Linter::DEFAULT_URL})
+      --history       cycle: directory runs/ of the stored results (branch
+                      results); passport criteria with check.history, such
+                      as DPP-ID-002, are rated from it. Without it dpplint's
+                      result (skipped) stays.
       --this-service  site: id of the entry marked "this_service" in available-services.json
       --site-url      site: base URL of the published pages (default: #{Site::DEFAULT_SITE_URL})
     TEXT
@@ -83,6 +87,7 @@ module DppValidator
         o.on("--test-instances [DIR]") { |v| options[:test_instances] = v || true }
         o.on("--cadence VALUE") { |v| options[:cadence] = v }
         o.on("--dpplint URL") { |v| options[:dpplint] = v }
+        o.on("--history DIR") { |v| options[:history] = v }
         o.on("--this-service ID") { |v| options[:this_service] = v }
         o.on("--site-url URL") { |v| options[:site_url] = v }
       end.parse!(@argv)
@@ -127,6 +132,7 @@ module DppValidator
 
     def cycle(options)
       raise DppValidator::Error, "--cadence daily or --cadence weekly is required" unless options[:cadence]
+      raise DppValidator::Error, "--history #{options[:history]} is not a directory" if options[:history] && !File.directory?(options[:history])
 
       repository = CriteriaRepository.new(options[:criteria])
       linter = Linter.new(base_url: options[:dpplint] || Linter::DEFAULT_URL, config: @linter_config)
@@ -135,7 +141,8 @@ module DppValidator
       end
       dir = options[:test_instances].is_a?(String) ? options[:test_instances] : nil
       done = Cycle.new(repository: repository, cadence: options[:cadence], output_dir: options[:output] || "out",
-                       linter: linter, config_for: config_for, out: @out, test_instances_dir: dir).call
+                       linter: linter, config_for: config_for, out: @out, test_instances_dir: dir,
+                       history_dir: options[:history]).call
       @out.puts "#{options[:cadence]}: #{done[:runs].size} service run(s), #{done[:lints].size} dpplint check(s), #{done[:errors].size} error(s)"
       done[:errors].each { |e| @err.puts "dpp-validator: #{e}" }
       done[:errors].empty? ? 0 : 1

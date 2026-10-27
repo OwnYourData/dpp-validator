@@ -122,7 +122,9 @@ module DppValidator
         return [Messages.with_severity("no response: #{response.error}", severity)] unless response.status?
         return :skip if Array(step["skip_if_status"]).include?(response.status)
         if Array(step["warn_if_status"]).include?(response.status)
-          return [Messages.warning("HTTP status #{response.status} is listed in warn_if_status")]
+          expected = Array(step.dig("expect", "status"))
+          text = expected.empty? ? "HTTP status is #{response.status}" : "HTTP status is #{response.status}, expected #{expected.join(' or ')}"
+          return [Messages.warning("#{text}; #{response.status} gives a warning, not a failure")]
         end
 
         messages = Expectation.new(step["expect"], @placeholders).messages(response, earlier: earlier)

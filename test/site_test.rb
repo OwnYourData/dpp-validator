@@ -37,7 +37,11 @@ class SiteTest < ValidatorTestCase
                         "summary" => { "text" => "3 of 4 automated checks passed", "passed" => 3, "failed" => 1, "total" => 4,
                                        "warnings" => 1, "skipped" => 2, "proposed_failed" => 0 },
                         "criteria" => [{ "id" => "DPP-ID-001", "title" => "Resolves", "status" => "active", "result" => "failed" },
-                                       { "id" => "DPP-DAT-016", "title" => "HTML", "status" => "active", "result" => "warning" }] }] }
+                                       { "id" => "DPP-DAT-016", "title" => "HTML", "status" => "active", "result" => "warning" },
+                                       { "id" => "DPP-CAR-002", "title" => "Scheme", "status" => "proposed", "result" => "warning" },
+                                       { "id" => "DPP-ID-002", "title" => "Stays resolvable", "status" => "proposed", "result" => "warning",
+                                         "message" => "DPP-ID-001 failed in 1 of 3 runs from 2026-10-16 to 2026-10-18: 2026-10-18",
+                                         "history" => { "criterion" => "DPP-ID-001", "period_days" => 30, "runs" => 3, "failed" => 1 } }] }] }
   end
 
   def build(dir, services:, results: {}, lints: {}, **options)
@@ -138,6 +142,11 @@ class SiteTest < ValidatorTestCase
       assert_includes b, DppValidator::Site::RESEARCH_NOTICE
       assert_includes b, "3 of 4 automated checks passed"
       assert b.index("DPP-ID-001") < b.index("DPP-DAT-016"), "failed before warning"
+      assert_includes b, "Stays resolvable <span class=\"muted\">(proposed, not counted)</span>" \
+                         "<ul class=\"msg\"><li>rated by dpp-validator from its stored runs: DPP-ID-001 failed in 1 of 3 runs " \
+                         "from 2026-10-16 to 2026-10-18: 2026-10-18</li></ul>"
+      assert b.index("DPP-DAT-016") < b.index("DPP-ID-002"), "proposed after active"
+      refute_includes b, "DPP-CAR-002", "proposed criteria from dpplint are counted in the summary only"
       assert_includes b, "First run pending · read-only, weekly."
 
       c = File.read(File.join(out, "services", "svc-c.html"), encoding: "UTF-8")
