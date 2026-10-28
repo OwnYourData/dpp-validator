@@ -1,6 +1,6 @@
 {
   "service_id": "ownyourdata-dpp-service",
-  "checked_at": "2026-10-27T09:50:13Z",
+  "checked_at": "2026-10-28T10:36:02Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -137,12 +137,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 10,
+            "runs": 11,
             "failed": 0,
             "from": "2026-10-18",
-            "to": "2026-10-27"
+            "to": "2026-10-28"
           },
-          "message": "DPP-ID-001 passed in all 10 runs from 2026-10-18 to 2026-10-27"
+          "message": "DPP-ID-001 passed in all 11 runs from 2026-10-18 to 2026-10-28"
         },
         {
           "id": "DPP-ID-009",
@@ -397,12 +397,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 4,
+            "runs": 5,
             "failed": 0,
             "from": "2026-10-24",
-            "to": "2026-10-27"
+            "to": "2026-10-28"
           },
-          "message": "DPP-ID-001 passed in all 4 runs from 2026-10-24 to 2026-10-27"
+          "message": "DPP-ID-001 passed in all 5 runs from 2026-10-24 to 2026-10-28"
         },
         {
           "id": "DPP-ID-009",
