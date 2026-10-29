@@ -1,6 +1,6 @@
 {
   "service_id": "ownyourdata-dpp-service",
-  "checked_at": "2026-10-29T10:55:09Z",
+  "checked_at": "2026-10-29T20:33:07Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -586,7 +586,7 @@
           "id": "DPP-DAT-011",
           "title": "Related resources are typed and reachable",
           "status": "proposed",
-          "result": "warning",
+          "result": "passed",
           "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-011"
         },
         {

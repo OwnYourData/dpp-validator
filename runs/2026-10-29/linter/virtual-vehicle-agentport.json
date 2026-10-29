@@ -1,0 +1,269 @@
+{
+  "service_id": "virtual-vehicle-agentport",
+  "checked_at": "2026-10-29T20:33:07Z",
+  "dpplint": "https://dpplint.ownyourdata.eu",
+  "passports": [
+    {
+      "product_id": "https://agentport.v2c2.at/p/EVP75-2026-000123",
+      "label": "battery passport, demonstration based on the EU battery passport guidance",
+      "lint_url": "https://dpplint.ownyourdata.eu/?productId=https%3A%2F%2Fagentport.v2c2.at%2Fp%2FEVP75-2026-000123",
+      "status": "checked",
+      "dpp_criteria": "9c27441",
+      "summary": {
+        "text": "4 of 4 automated checks passed",
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "warnings": 0,
+        "skipped": 2,
+        "proposed_failed": 2
+      },
+      "criteria": [
+        {
+          "id": "DPP-BAT-002",
+          "title": "Battery passport exposes the public Annex XIII data",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_applicable",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-bat-002"
+        },
+        {
+          "id": "DPP-CAR-002",
+          "title": "Product identifier follows an EN 18219 product scheme",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-car-002"
+        },
+        {
+          "id": "DPP-CFG-005",
+          "title": "Granularity matches the product identifier",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-cfg-005"
+        },
+        {
+          "id": "DPP-CRT-003",
+          "title": "Passport contains the product-specific mandatory data",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_evaluated",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-crt-003"
+        },
+        {
+          "id": "DPP-DAT-003",
+          "title": "Passport is delivered as structured JSON",
+          "status": "active",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-003"
+        },
+        {
+          "id": "DPP-DAT-006",
+          "title": "Passport follows the Commission's semantic data models",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_evaluated",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-006"
+        },
+        {
+          "id": "DPP-DAT-011",
+          "title": "Related resources are typed and reachable",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_applicable",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-011"
+        },
+        {
+          "id": "DPP-DAT-014",
+          "title": "Passport header uses the EN 18223 attributes",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-014"
+        },
+        {
+          "id": "DPP-DAT-015",
+          "title": "Granularity uses the EN 18223 values",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-015"
+        },
+        {
+          "id": "DPP-DAT-016",
+          "title": "Passport is available as HTML",
+          "status": "active",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-016"
+        },
+        {
+          "id": "DPP-DAT-017",
+          "title": "elementId is unique at its level",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-017"
+        },
+        {
+          "id": "DPP-DAT-020",
+          "title": "HTML view conforms to the HTML standard",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-020"
+        },
+        {
+          "id": "DPP-DAT-021",
+          "title": "elementId is unique in the whole passport",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_evaluated",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-021"
+        },
+        {
+          "id": "DPP-DAT-026",
+          "title": "valueDataType names no XSD type that EN 18223 excludes",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-dat-026"
+        },
+        {
+          "id": "DPP-ID-001",
+          "title": "Product identifier resolves to its passport",
+          "status": "active",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-001"
+        },
+        {
+          "id": "DPP-ID-002",
+          "title": "Product identifier stays resolvable over time",
+          "status": "proposed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-002",
+          "result": "skipped",
+          "reason_code": "not_evaluated",
+          "history": {
+            "criterion": "DPP-ID-001",
+            "period_days": 30,
+            "runs": 1,
+            "failed": 0,
+            "from": "2026-10-29",
+            "to": "2026-10-29"
+          },
+          "message": "DPP-ID-001 has a result in only 1 run of the last 30 days; the rating needs at least 3 runs"
+        },
+        {
+          "id": "DPP-ID-009",
+          "title": "Economic operator identifier follows an EN 18219 scheme",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-009"
+        },
+        {
+          "id": "DPP-ID-010",
+          "title": "Facility identifier follows an EN 18219 scheme",
+          "status": "proposed",
+          "result": "failed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-010"
+        },
+        {
+          "id": "DPP-ID-013",
+          "title": "Passport readable without registration or credentials",
+          "status": "active",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-013"
+        },
+        {
+          "id": "DPP-ID-014",
+          "title": "Product identifier is a URL or convertible to one",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-014"
+        },
+        {
+          "id": "DPP-ID-015",
+          "title": "Identifiers use ISO/IEC 646 characters and, as URIs, RFC 3986 syntax",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-015"
+        },
+        {
+          "id": "DPP-ID-016",
+          "title": "DID identifiers follow DID Core, DID Resolution and VC 2.0",
+          "status": "active",
+          "result": "skipped",
+          "reason_code": "not_applicable",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-016"
+        },
+        {
+          "id": "DPP-ID-054",
+          "title": "A product DID uses did:web, did:ethr or did:ebsi",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_applicable",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-054"
+        },
+        {
+          "id": "DPP-INT-005",
+          "title": "Passport body follows the EN 18223 data model",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-int-005"
+        },
+        {
+          "id": "DPP-PCDS-008",
+          "title": "Embedded PCDS are machine-readable with template ID",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "not_applicable",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-pcds-008"
+        },
+        {
+          "id": "DPP-REG-024",
+          "title": "Product identifier has the form the EU DPP registry accepts",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-reg-024"
+        },
+        {
+          "id": "DPP-ROL-016",
+          "title": "Passport names its economic operator",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-rol-016"
+        },
+        {
+          "id": "DPP-SEC-002",
+          "title": "Integrity of the passport version is verifiable",
+          "status": "active",
+          "result": "skipped",
+          "reason_code": "no_evidence",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-sec-002"
+        },
+        {
+          "id": "DPP-SEC-013",
+          "title": "Integrity proof is issued by the economic operator",
+          "status": "proposed",
+          "result": "skipped",
+          "reason_code": "no_evidence",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-sec-013"
+        },
+        {
+          "id": "DPP-SEC-014",
+          "title": "HTML view loads no external components",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-sec-014"
+        },
+        {
+          "id": "DPP-SEC-020",
+          "title": "Public passport data are served without cookies",
+          "status": "proposed",
+          "result": "passed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-sec-020"
+        },
+        {
+          "id": "DPP-SEC-021",
+          "title": "HTML view uses no device functions",
+          "status": "proposed",
+          "result": "failed",
+          "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-sec-021"
+        }
+      ]
+    }
+  ]
+}
