@@ -25,7 +25,11 @@ module DppValidator
   # Wording follows CRITERIA-FORMAT.md ("Results wording"): "N of M automated
   # checks passed" for active criteria only, proposed criteria marked as not
   # counted, entries from our research marked as such, and the notice that
-  # results are no certification. The pages have no external resources.
+  # results are no certification. The overview ends with "About these checks":
+  # services of other operators listed without their consent, no quality seal
+  # and no endorsement, the role of OwnYourData, and how operators ask for
+  # correction or removal; every detail page repeats it in short. The pages
+  # have no external resources.
   class Site
     CRITERIA_REPO = "https://github.com/OwnYourData/dpp-criteria".freeze
     REPO = "https://github.com/OwnYourData/dpp-validator".freeze
@@ -51,6 +55,23 @@ module DppValidator
     RESEARCH_NOTICE = "This list is part of a research project and shares what we currently know. It makes no claim to be " \
                       "complete and is not a legal assessment. Entries from our research come from public information and " \
                       "may be incomplete or out of date.".freeze
+    CONTACT = "office@ownyourdata.eu".freeze
+    REQUESTS_URL = "#{REPO}#listing-correction-and-removal".freeze
+    ISSUES_URL = "#{CRITERIA_REPO}/issues".freeze
+    # Disclosure on the overview ("About these checks") and, shorter, on every
+    # detail page; README "Listing, correction and removal" says the same.
+    OTHERS_NOTICE = "Since 18 October 2026 this list also includes services of other operators that we found in our own " \
+                    "research. They are listed and checked without the consent of their operators, only through " \
+                    "endpoints that anyone can reach on the public internet.".freeze
+    NO_SEAL_NOTICE = "The results are no quality seal and no certification, and they imply no endorsement by anyone: " \
+                     "listing a service does not mean that its operator agrees with the criteria or the results.".freeze
+    OWN_ROLE_NOTICE = "OwnYourData maintains the criteria, runs dpp-validator and dpplint, and operates one of the listed " \
+                      "services, the OwnYourData DPP Service, which goes through the same checks as every other entry. It " \
+                      "is shown first because these pages are linked from its start page; the order is no ranking.".freeze
+    REQUESTS_NOTICE = "An operator can ask at any time for its entry to be corrected or removed. We answer within five " \
+                      "working days; a removal takes effect within five working days at the latest.".freeze
+    DETAIL_DISCLOSURE = "OwnYourData maintains the criteria, runs these checks and operates one of the listed services. " \
+                        "Operators can ask at any time for their entry to be corrected or removed.".freeze
 
     # services: entries of services/ ([Service]); without them the entries are
     # taken from the validator results.
@@ -189,13 +210,26 @@ module DppValidator
         release and discarded after the run.
         Only criteria with status <em>active</em> count in &ldquo;N of M&rdquo;; warnings are included in the passed ones.</p>
         <p class="notice">#{h(RESEARCH_NOTICE)} Operators can correct or take over an entry, or ask for its removal:
-        <a href="#{SERVICES_README}">how to add or correct a service</a>. #{h(Report::NOTICE)}</p>
+        <a href="#{SERVICES_README}">how to add or correct a service</a>. #{h(Report::NOTICE)}
+        Who runs these checks and how they treat services of other operators: <a href="#about">About these checks</a>.</p>
         <div class="scroll"><table>
         <thead><tr><th>Service</th><th>Entry</th><th>Licence</th><th>Example passports &middot; dpplint</th><th>Service checks &middot; dpp-validator</th></tr></thead>
         <tbody>
         #{rows.join("\n")}
         </tbody></table></div>
         <p class="muted">Machine-readable: <a href="available-services.json">available-services.json</a>.</p>
+        #{about_section}
+      HTML
+    end
+
+    def about_section
+      <<~HTML.chomp
+        <h2 id="about">About these checks</h2>
+        <p>#{h(OTHERS_NOTICE)}</p>
+        <p>#{h(NO_SEAL_NOTICE)}</p>
+        <p>#{h(OWN_ROLE_NOTICE)}</p>
+        <p>#{h(REQUESTS_NOTICE)} Write to <a href="mailto:#{CONTACT}">#{CONTACT}</a> or open an
+        <a href="#{ISSUES_URL}">issue in dpp-criteria</a>; <a href="#{REQUESTS_URL}">how we handle requests</a>.</p>
       HTML
     end
 
@@ -224,6 +258,8 @@ module DppValidator
         #{validator_section(s, result)}
         #{declarations_section(result)}
         <p class="notice">#{h(Report::NOTICE)}</p>
+        <p class="notice">#{h(DETAIL_DISCLOSURE)} Write to <a href="mailto:#{CONTACT}">#{CONTACT}</a>;
+        <a href="../index.html#about">about these checks</a>.</p>
       HTML
     end
 

@@ -113,6 +113,15 @@ class SiteTest < ValidatorTestCase
       refute_includes index, "No longer listed"
       assert index.index("svc-a.html") < index.index("svc-b.html"), "this service first"
       assert_includes index, %(<link rel="icon" href="oyd-mark.svg" type="image/svg+xml">)
+      about = index[index.index(%(<h2 id="about">About these checks</h2>))..]
+      assert index.index("</table>") < index.index(%(<h2 id="about">)), "about after the table"
+      assert_includes index, %(<a href="#about">About these checks</a>)
+      [DppValidator::Site::OTHERS_NOTICE, DppValidator::Site::NO_SEAL_NOTICE, DppValidator::Site::OWN_ROLE_NOTICE,
+       DppValidator::Site::REQUESTS_NOTICE].each { |text| assert_includes about, text }
+      assert_includes about, "without the consent of their operators"
+      assert_includes about, %(<a href="mailto:office@ownyourdata.eu">office@ownyourdata.eu</a>)
+      assert_includes about, %(<a href="https://github.com/OwnYourData/dpp-criteria/issues">issue in dpp-criteria</a>)
+      assert_includes about, %(<a href="https://github.com/OwnYourData/dpp-validator#listing-correction-and-removal">how we handle requests</a>)
 
       a = File.read(File.join(out, "services", "svc-a.html"), encoding: "UTF-8")
       assert_page_rules(a, "../")
@@ -130,6 +139,9 @@ class SiteTest < ValidatorTestCase
       assert_includes a, %(<link rel="icon" href="../oyd-mark.svg" type="image/svg+xml">)
       assert_includes a, DppValidator::Report::NOTICE
       refute_includes a, DppValidator::Site::RESEARCH_NOTICE
+      assert_includes a, DppValidator::Site::DETAIL_DISCLOSURE
+      assert_includes a, %(<a href="mailto:office@ownyourdata.eu">office@ownyourdata.eu</a>)
+      assert_includes a, %(<a href="../index.html#about">about these checks</a>)
       assert a.index("DPP-DEX-006") < a.index("DPP-API-013"), "failed before passed"
       assert a.index("DPP-API-013") < a.index("DPP-OPS-006"), "proposed after active"
       refute_includes a, "Self-declarations of the operator"
@@ -140,6 +152,7 @@ class SiteTest < ValidatorTestCase
       assert_includes b, "<strong>Entry from our research</strong> &middot; information as of 2026-10-18"
       assert_includes b, "Demo &lt;only&gt;."
       assert_includes b, DppValidator::Site::RESEARCH_NOTICE
+      assert_includes b, DppValidator::Site::DETAIL_DISCLOSURE
       assert_includes b, "3 of 4 automated checks passed"
       assert b.index("DPP-ID-001") < b.index("DPP-DAT-016"), "failed before warning"
       assert_includes b, "Stays resolvable <span class=\"muted\">(proposed, not counted)</span>" \

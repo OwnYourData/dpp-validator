@@ -13,6 +13,69 @@ Passport criteria (a published passport behind a product identifier) are
 checked by [dpplint](https://github.com/OwnYourData/dpplint); this repository
 covers the behaviour of the DPP service and its API.
 
+## Listing, correction and removal
+
+- **Services of other operators.** Since 18 October 2026 the list also
+  includes DPP services of other operators that we found in our own research
+  (entries from our research in
+  [dpp-criteria/services](https://github.com/OwnYourData/dpp-criteria/tree/main/services)).
+  They are listed and checked without the consent of their operators, only
+  through endpoints that anyone can reach on the public internet: read-only
+  requests at most once a week, or our own short-lived test instance of open
+  software. Their example passports are checked with dpplint once a week.
+  Such entries are marked as our own research wherever results are shown and
+  may be incomplete or out of date.
+- **What the results are not.** The results are results of automated checks
+  against criteria we maintain. They are no quality seal, no certification
+  and no presumption of conformity. They do not mean that anyone endorses
+  them: listing a service does not mean that its operator agrees with the
+  criteria or the results, and no authority, standards body or funding body
+  has approved the criteria or this list.
+- **Our own role.** OwnYourData maintains the criteria
+  ([dpp-criteria](https://github.com/OwnYourData/dpp-criteria)), runs
+  dpp-validator and [dpplint](https://github.com/OwnYourData/dpplint), and
+  operates one of the listed services, the OwnYourData DPP Service. That
+  service goes through the same criteria and the same code as every other
+  entry. It is shown first on the result pages because they are linked from
+  its start page; the order is no ranking. Changes to the criteria and to this
+  repository are made in public pull requests.
+- **Correction or removal.** An operator can ask at any time for its entry to
+  be corrected or removed, by e-mail to
+  [office@ownyourdata.eu](mailto:office@ownyourdata.eu) or with an issue or a
+  pull request in dpp-criteria. We answer within five working days.
+  - *Correction*: we check the request and correct the entry, or explain why
+    we keep it; a disputed result of a criterion is discussed in an issue in
+    dpp-criteria. An operator can also take over the entry with a pull
+    request (see [services/README.md](https://github.com/OwnYourData/dpp-criteria/blob/main/services/README.md#7-entries-from-our-research)).
+  - *Removal*: within five working days at the latest, the entry is deleted
+    from dpp-criteria and the service is no longer checked; its page and
+    latest results disappear from the result pages with the next published
+    run. Results of earlier runs remain on the branch `results`.
+  - The same applies to entries we maintain with the consent of their
+    operator and to the entry of our own service.
+
+## Related tools
+
+These repositories and services of OwnYourData belong together. Each is a
+project of its own; the list shows how they depend on each other.
+
+- [dpp-criteria](https://github.com/OwnYourData/dpp-criteria) – the criteria
+  and the list of services. dpp-validator reads it at the commit pinned in
+  [`DPP_CRITERIA_REF`](DPP_CRITERIA_REF).
+- [dpplint](https://github.com/OwnYourData/dpplint) – checks the passport
+  behind a product identifier, at <https://dpplint.ownyourdata.eu>.
+  dpp-validator calls its API for the example passports of every entry.
+- [DIDlint](https://github.com/OwnYourData/didlint) – validates DID
+  documents, at <https://didlint.ownyourdata.eu>; dpplint calls it for the
+  DIDs in a passport.
+- [SOyA](https://ownyourdata.github.io/soya/)
+  ([source](https://github.com/OwnYourData/soya)) – the passport criteria of
+  dpp-criteria are SOyA structures with SHACL shapes; dpplint validates with
+  the SOyA web-cli.
+- [OYDID](https://ownyourdata.github.io/oydid/)
+  ([source](https://github.com/OwnYourData/oydid)) – the DID method
+  `did:oyd`; DIDlint resolves `did:oyd` through the OYDID resolver.
+
 ## Status
 
 - Check types `tls` and `http` for all criteria with `target: service` and
