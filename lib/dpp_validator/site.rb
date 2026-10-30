@@ -18,7 +18,8 @@ module DppValidator
   # also the icon, copied next to index.html) and links to the DPP Service and
   # to this repository, as on the start page of the DPP Service. Header and
   # footer span the full width of the window
-  # and names the operator, the imprint and the privacy policy of OwnYourData
+  # and names the operator and the imprint of OwnYourData, the privacy policy of
+  # the DPP services (on the DPP Service)
   # and the funding notice of config/funding.yml; only its content and the main
   # content are limited to the width of the page (.wrap).
   #
@@ -39,7 +40,7 @@ module DppValidator
     MARK = File.expand_path("../../assets/oyd-mark.svg", __dir__)
     OPERATOR_URL = "https://www.ownyourdata.eu/en/".freeze
     IMPRINT_URL = "https://www.ownyourdata.eu/en/imprint/".freeze
-    PRIVACY_URL = "https://www.ownyourdata.eu/en/privacy-policy/".freeze
+    PRIVACY_URL = "https://dpp-service.ownyourdata.eu/privacy".freeze
     ORDER = { "failed" => 0, "warning" => 1, "passed" => 2, "skipped" => 3 }.freeze
     REASON_LABELS = {
       "not_applicable" => "not applicable", "not_implemented" => "not implemented", "no_evidence" => "no evidence",

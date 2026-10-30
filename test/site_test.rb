@@ -63,6 +63,7 @@ class SiteTest < ValidatorTestCase
     assert_includes header, %(<a href="https://dpp-service.ownyourdata.eu/">DPP Service</a>)
     assert_includes header, %(<a href="https://github.com/OwnYourData/dpp-validator">GitHub</a>)
     refute_match(%r{<script\b|src="(https?:)?//}i, html, "no external resources")
+    refute_match(/googletagmanager|gtag|consent\.js|Cookie settings/i, html, "no conversion tag and no consent banner on these pages")
     html.scan(/<link\b[^>]*>/i).each { |link| refute_match(%r{href="(https?:)?//}i, link, "no external resources") }
     footer = html[%r{<footer>.*</footer>}m]
     assert footer, "footer"
@@ -70,7 +71,7 @@ class SiteTest < ValidatorTestCase
     refute_match(/body \{[^}]*max-width/, html, "body is not limited in width")
     assert_includes footer, %(Operated by <a href="https://www.ownyourdata.eu/en/">OwnYourData</a>)
     assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/imprint/">Imprint</a>)
-    assert_includes footer, %(<a href="https://www.ownyourdata.eu/en/privacy-policy/">Privacy</a>)
+    assert_includes footer, %(<a href="https://dpp-service.ownyourdata.eu/privacy">Privacy</a>)
     assert_includes footer, %(<div class="funding">#{DppValidator::Funding.html}</div>)
     assert_equal 1, html.scan("917177").size
   end
