@@ -1,6 +1,6 @@
 {
   "service_id": "ownyourdata-dpp-service",
-  "checked_at": "2026-10-29T20:33:07Z",
+  "checked_at": "2026-10-30T10:53:06Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -137,12 +137,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 12,
+            "runs": 13,
             "failed": 0,
             "from": "2026-10-18",
-            "to": "2026-10-29"
+            "to": "2026-10-30"
           },
-          "message": "DPP-ID-001 passed in all 12 runs from 2026-10-18 to 2026-10-29"
+          "message": "DPP-ID-001 passed in all 13 runs from 2026-10-18 to 2026-10-30"
         },
         {
           "id": "DPP-ID-009",
@@ -397,12 +397,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 6,
+            "runs": 7,
             "failed": 0,
             "from": "2026-10-24",
-            "to": "2026-10-29"
+            "to": "2026-10-30"
           },
-          "message": "DPP-ID-001 passed in all 6 runs from 2026-10-24 to 2026-10-29"
+          "message": "DPP-ID-001 passed in all 7 runs from 2026-10-24 to 2026-10-30"
         },
         {
           "id": "DPP-ID-009",
@@ -650,17 +650,16 @@
           "title": "Product identifier stays resolvable over time",
           "status": "proposed",
           "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/9c27441/criteria/README.md#dpp-id-002",
-          "result": "skipped",
-          "reason_code": "not_evaluated",
+          "result": "passed",
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 2,
+            "runs": 3,
             "failed": 0,
             "from": "2026-10-28",
-            "to": "2026-10-29"
+            "to": "2026-10-30"
           },
-          "message": "DPP-ID-001 has a result in only 2 runs of the last 30 days; the rating needs at least 3 runs"
+          "message": "DPP-ID-001 passed in all 3 runs from 2026-10-28 to 2026-10-30"
         },
         {
           "id": "DPP-ID-009",
