@@ -28,20 +28,21 @@
     },
     "listed_since": "2026-10-29"
   },
-  "run_at": "2026-10-30T10:53:06Z",
+  "run_at": "2026-10-31T10:24:26Z",
   "mode": "full",
   "dpp_criteria": {
     "repository": "https://github.com/OwnYourData/dpp-criteria",
     "commit": "290a9385f894be9d009c0023c356b7e3ccbfc259"
   },
   "summary": {
-    "text": "8 of 13 automated checks passed",
-    "passed": 8,
-    "failed": 5,
-    "warnings": 1,
-    "skipped": 2,
+    "text": "0 of 0 automated checks passed",
+    "passed": 0,
+    "failed": 0,
+    "warnings": 0,
+    "skipped": 15,
     "skipped_by_reason": {
-      "not_applicable": 2
+      "not_applicable": 2,
+      "unreachable": 13
     },
     "proposed_not_counted": {
       "text": "0 of 0 automated checks passed",
@@ -192,22 +193,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "failed",
+      "result": "skipped",
+      "reason": "step 1 (POST /dppsByProductIds): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "error",
-          "message": "step 1 (POST /dppsByProductIds): HTTP status is 422, expected 400"
-        },
-        {
-          "severity": "error",
-          "message": "step 2 (POST /dppsByProductIds): HTTP status is 422, expected 400"
-        }
+
       ],
       "details": [
-        "step 1 (POST /dppsByProductIds): HTTP 422 over HTTP/2",
-        "step 2 (POST /dppsByProductIds): HTTP 422 over HTTP/2"
+        "step 1 (POST /dppsByProductIds): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-013",
@@ -219,14 +214,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{dppId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-014",
@@ -238,14 +235,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dppsByProductId/{productId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "step 1 (GET /dppsByProductId/{productId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dppsByProductId/{productId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-015",
@@ -257,17 +256,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "failed",
+      "result": "skipped",
+      "reason": "step 1 (POST /dppsByProductIds): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "error",
-          "message": "step 1 (POST /dppsByProductIds): HTTP status is 422, expected 200"
-        }
+
       ],
       "details": [
-        "step 1 (POST /dppsByProductIds): HTTP 422 over HTTP/2"
+        "step 1 (POST /dppsByProductIds): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-016",
@@ -321,17 +319,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "failed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{dppId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "error",
-          "message": "the API base https://agentport.v2c2.at/dpp-api does not match //v1/?$/"
-        }
+
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-021",
@@ -364,17 +361,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "warning",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{randomId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "warning",
-          "message": "step 1 (GET /dpps/{randomId}): $.message selects nothing, expected a value"
-        }
+
       ],
       "details": [
-        "step 1 (GET /dpps/{randomId}): HTTP 404 over HTTP/2"
+        "step 1 (GET /dpps/{randomId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-API-023",
@@ -386,24 +382,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "failed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{dppId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "error",
-          "message": "step 3 (GET /dpps/{dppId}?representation=full): $.elements[0].elementId selects nothing, expected a value"
-        },
-        {
-          "severity": "warning",
-          "message": "step 4 (GET /dpps/{dppId}?representation=dpp-validator-unknown): HTTP status is 200, expected 400"
-        }
+
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
-        "step 2 (GET /dpps/{dppId}?representation=compressed): HTTP 200 over HTTP/2",
-        "step 3 (GET /dpps/{dppId}?representation=full): HTTP 200 over HTTP/2",
-        "step 4 (GET /dpps/{dppId}?representation=dpp-validator-unknown): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-BAT-003",
@@ -457,15 +445,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "certificate valid for agentport.v2c2.at",
-        "plain HTTP redirected to https://agentport.v2c2.at/dpp-api/dpps/https%3A%2F%2Fagentport.v2c2.at%2Fdpp%2Fdpp-eu-guidance-demo-ev-001"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DEX-003",
@@ -477,18 +466,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "negotiated TLS 1.3 (at least TLS 1.2)",
-        "SSL 3.0 refused (SSL 3.0 ClientHello answered with TLS alert handshake_failure)",
-        "TLS 1.0 refused (TLS handshake failed: state=error: tlsv1 alert protocol version (SSL alert number 70))",
-        "TLS 1.1 refused (TLS handshake failed: state=error: tlsv1 alert protocol version (SSL alert number 70))",
-        "TLS 1.3 supported"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DEX-004",
@@ -500,14 +487,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{dppId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DEX-005",
@@ -519,15 +508,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "reference request: HTTP 200 over HTTP/2",
-        "HTTP/2: HTTP 200 over HTTP/2"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DEX-006",
@@ -539,21 +529,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "failed",
+      "result": "skipped",
+      "reason": "service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
-        {
-          "severity": "error",
-          "message": "HTTP/1.0 not rejected: answered 200 (ALPN offered only http/1.0)"
-        },
-        {
-          "severity": "error",
-          "message": "HTTP/1.1 not rejected: answered 200 (ALPN offered only http/1.1)"
-        }
+
       ],
       "details": [
-        "reference request: HTTP 200 over HTTP/2"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DGA-001",
@@ -607,17 +592,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "step 1 (GET /dpps/{dppId}): service not reachable (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))",
+      "reason_code": "unreachable",
       "messages": [
 
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
-        "step 2 (PATCH /dpps/{dppId}): HTTP 405 over HTTP/2",
-        "step 3 (POST /dpps): HTTP 401 over HTTP/2",
-        "step 4 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): no response (no TCP connection to agentport.v2c2.at:443 within 10 s (Connection timed out - user specified timeout))"
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-SEC-022",
