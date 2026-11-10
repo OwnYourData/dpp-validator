@@ -1,6 +1,6 @@
 {
   "service_id": "virtual-vehicle-agentport",
-  "checked_at": "2026-11-09T12:53:30Z",
+  "checked_at": "2026-11-10T12:40:51Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -138,12 +138,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 12,
+            "runs": 13,
             "failed": 2,
             "from": "2026-10-29",
-            "to": "2026-11-09"
+            "to": "2026-11-10"
           },
-          "message": "DPP-ID-001 failed in 2 of 12 runs from 2026-10-29 to 2026-11-09: 2026-10-31, 2026-11-01"
+          "message": "DPP-ID-001 failed in 2 of 13 runs from 2026-10-29 to 2026-11-10: 2026-10-31, 2026-11-01"
         },
         {
           "id": "DPP-ID-009",
