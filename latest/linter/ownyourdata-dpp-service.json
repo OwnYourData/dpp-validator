@@ -1,6 +1,6 @@
 {
   "service_id": "ownyourdata-dpp-service",
-  "checked_at": "2026-11-12T12:43:59Z",
+  "checked_at": "2026-11-13T12:13:38Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -137,12 +137,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 26,
+            "runs": 27,
             "failed": 0,
             "from": "2026-10-18",
-            "to": "2026-11-12"
+            "to": "2026-11-13"
           },
-          "message": "DPP-ID-001 passed in all 26 runs from 2026-10-18 to 2026-11-12"
+          "message": "DPP-ID-001 passed in all 27 runs from 2026-10-18 to 2026-11-13"
         },
         {
           "id": "DPP-ID-009",
@@ -397,12 +397,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 20,
+            "runs": 21,
             "failed": 0,
             "from": "2026-10-24",
-            "to": "2026-11-12"
+            "to": "2026-11-13"
           },
-          "message": "DPP-ID-001 passed in all 20 runs from 2026-10-24 to 2026-11-12"
+          "message": "DPP-ID-001 passed in all 21 runs from 2026-10-24 to 2026-11-13"
         },
         {
           "id": "DPP-ID-009",
@@ -654,12 +654,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 16,
+            "runs": 17,
             "failed": 0,
             "from": "2026-10-28",
-            "to": "2026-11-12"
+            "to": "2026-11-13"
           },
-          "message": "DPP-ID-001 passed in all 16 runs from 2026-10-28 to 2026-11-12"
+          "message": "DPP-ID-001 passed in all 17 runs from 2026-10-28 to 2026-11-13"
         },
         {
           "id": "DPP-ID-009",
