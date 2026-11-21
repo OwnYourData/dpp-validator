@@ -31,24 +31,25 @@
     },
     "listed_since": "2026-10-08"
   },
-  "run_at": "2026-11-20T12:54:17Z",
+  "run_at": "2026-11-21T12:40:29Z",
   "mode": "full",
   "dpp_criteria": {
     "repository": "https://github.com/OwnYourData/dpp-criteria",
     "commit": "290a9385f894be9d009c0023c356b7e3ccbfc259"
   },
   "summary": {
-    "text": "15 of 15 automated checks passed",
-    "passed": 15,
-    "failed": 0,
-    "warnings": 0,
-    "skipped": 0,
+    "text": "4 of 13 automated checks passed",
+    "passed": 4,
+    "failed": 9,
+    "warnings": 1,
+    "skipped": 2,
     "skipped_by_reason": {
+      "not_evaluated": 2
     },
     "proposed_not_counted": {
-      "text": "3 of 3 automated checks passed",
-      "passed": 3,
-      "failed": 0,
+      "text": "0 of 3 automated checks passed",
+      "passed": 0,
+      "failed": 3,
       "warnings": 0,
       "skipped": 12,
       "skipped_by_reason": {
@@ -90,14 +91,25 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        },
+        {
+          "severity": "error",
+          "message": "step 2 (GET /dpps/{dppId}?representation=full): HTTP status is 400, expected 200"
+        },
+        {
+          "severity": "error",
+          "message": "step 3 (GET /dppsByProductId/{productId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
-        "step 2 (GET /dpps/{dppId}?representation=full): HTTP 200 over HTTP/2",
-        "step 3 (GET /dppsByProductId/{productId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1",
+        "step 2 (GET /dpps/{dppId}?representation=full): HTTP 400 over HTTP/1.1",
+        "step 3 (GET /dppsByProductId/{productId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": false
     },
@@ -132,12 +144,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP status is 400, expected 401"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP 401 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}/elements/{controlledElementIdPath}): HTTP 400 over HTTP/1.1"
       ],
       "counted": false
     },
@@ -198,8 +213,8 @@
 
       ],
       "details": [
-        "step 1 (POST /dppsByProductIds): HTTP 400 over HTTP/2",
-        "step 2 (POST /dppsByProductIds): HTTP 400 over HTTP/2"
+        "step 1 (POST /dppsByProductIds): HTTP 400 over HTTP/1.1",
+        "step 2 (POST /dppsByProductIds): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -213,12 +228,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -232,12 +250,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dppsByProductId/{productId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dppsByProductId/{productId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dppsByProductId/{productId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -251,12 +272,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "warning",
       "messages": [
-
+        {
+          "severity": "warning",
+          "message": "step 1 (POST /dppsByProductIds): HTTP status is 400, expected 200; 400 gives a warning, not a failure"
+        }
       ],
       "details": [
-        "step 1 (POST /dppsByProductIds): HTTP 200 over HTTP/2"
+        "step 1 (POST /dppsByProductIds): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -291,12 +315,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -310,12 +337,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -329,13 +359,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}/elements/{elementIdPath}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}/elements/{elementIdPath}): HTTP 200 over HTTP/2",
-        "step 2 (GET /dpps/{dppId}/elements/%24%5B): HTTP 400 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}/elements/{elementIdPath}): HTTP 400 over HTTP/1.1",
+        "step 2 (GET /dpps/{dppId}/elements/%24%5B): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -349,12 +382,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{randomId}): HTTP status is 400, expected 404"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{randomId}): HTTP 404 over HTTP/2"
+        "step 1 (GET /dpps/{randomId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -368,15 +404,26 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        },
+        {
+          "severity": "error",
+          "message": "step 2 (GET /dpps/{dppId}?representation=compressed): HTTP status is 400, expected 200"
+        },
+        {
+          "severity": "error",
+          "message": "step 3 (GET /dpps/{dppId}?representation=full): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
-        "step 2 (GET /dpps/{dppId}?representation=compressed): HTTP 200 over HTTP/2",
-        "step 3 (GET /dpps/{dppId}?representation=full): HTTP 200 over HTTP/2",
-        "step 4 (GET /dpps/{dppId}?representation=dpp-validator-unknown): HTTP 400 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1",
+        "step 2 (GET /dpps/{dppId}?representation=compressed): HTTP 400 over HTTP/1.1",
+        "step 3 (GET /dpps/{dppId}?representation=full): HTTP 400 over HTTP/1.1",
+        "step 4 (GET /dpps/{dppId}?representation=dpp-validator-unknown): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -475,12 +522,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -494,15 +544,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "HTTP/2 not tested: reference request GET {base}/dpps/{dppId} with default negotiation gave HTTP 400 over HTTP/1.1, not 2xx or 3xx",
+      "reason_code": "not_evaluated",
       "messages": [
 
       ],
       "details": [
-        "reference request: HTTP 200 over HTTP/2",
-        "HTTP/2: HTTP 200 over HTTP/2"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DEX-006",
@@ -514,16 +565,16 @@
       "target": "service",
       "method": "automated",
       "check_type": "tls",
-      "result": "passed",
+      "result": "skipped",
+      "reason": "HTTP/1.0 not tested: reference request GET {base}/dpps/{dppId} with default negotiation gave HTTP 400 over HTTP/1.1, not 2xx or 3xx; HTTP/1.1 not tested: reference request GET {base}/dpps/{dppId} with default negotiation gave HTTP 400 over HTTP/1.1, not 2xx or 3xx",
+      "reason_code": "not_evaluated",
       "messages": [
 
       ],
       "details": [
-        "reference request: HTTP 200 over HTTP/2",
-        "HTTP/1.0 rejected (status 400)",
-        "HTTP/1.1 rejected (status 400)"
+
       ],
-      "counted": true
+      "counted": false
     },
     {
       "id": "DPP-DGA-001",
@@ -577,15 +628,22 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        },
+        {
+          "severity": "error",
+          "message": "step 4 (GET /dpps/{dppId}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dpps/{dppId}): HTTP 200 over HTTP/2",
-        "step 2 (PATCH /dpps/{dppId}): HTTP 401 over HTTP/2",
-        "step 3 (POST /dpps): HTTP 401 over HTTP/2",
-        "step 4 (GET /dpps/{dppId}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1",
+        "step 2 (PATCH /dpps/{dppId}): HTTP 400 over HTTP/1.1",
+        "step 3 (POST /dpps): HTTP 400 over HTTP/1.1",
+        "step 4 (GET /dpps/{dppId}): HTTP 400 over HTTP/1.1"
       ],
       "counted": true
     },
@@ -641,12 +699,15 @@
       "target": "service",
       "method": "automated",
       "check_type": "http",
-      "result": "passed",
+      "result": "failed",
       "messages": [
-
+        {
+          "severity": "error",
+          "message": "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP status is 400, expected 200"
+        }
       ],
       "details": [
-        "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP 200 over HTTP/2"
+        "step 1 (GET /dppsByIdAndDate/{dppId}?date={now}): HTTP 400 over HTTP/1.1"
       ],
       "counted": false
     },
