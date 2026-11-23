@@ -1,6 +1,6 @@
 {
   "service_id": "opendpp",
-  "checked_at": "2026-11-16T12:47:37Z",
+  "checked_at": "2026-11-23T14:40:42Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -143,12 +143,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 6,
+            "runs": 5,
             "failed": 0,
-            "from": "2026-10-18",
-            "to": "2026-11-16"
+            "from": "2026-10-26",
+            "to": "2026-11-23"
           },
-          "message": "DPP-ID-001 passed in all 6 runs from 2026-10-18 to 2026-11-16"
+          "message": "DPP-ID-001 passed in all 5 runs from 2026-10-26 to 2026-11-23"
         },
         {
           "id": "DPP-ID-009",

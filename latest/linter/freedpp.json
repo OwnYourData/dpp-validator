@@ -1,6 +1,6 @@
 {
   "service_id": "freedpp",
-  "checked_at": "2026-11-16T12:47:37Z",
+  "checked_at": "2026-11-23T14:40:42Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -137,12 +137,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 6,
-            "failed": 6,
-            "from": "2026-10-18",
-            "to": "2026-11-16"
+            "runs": 5,
+            "failed": 5,
+            "from": "2026-10-26",
+            "to": "2026-11-23"
           },
-          "message": "DPP-ID-001 failed in 6 consecutive runs: 2026-10-18, 2026-10-19, 2026-10-26, 2026-11-02, 2026-11-09 and 1 more"
+          "message": "DPP-ID-001 failed in 5 consecutive runs: 2026-10-26, 2026-11-02, 2026-11-09, 2026-11-16, 2026-11-23"
         },
         {
           "id": "DPP-ID-009",

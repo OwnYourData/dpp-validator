@@ -31,20 +31,20 @@
     },
     "listed_since": "2026-10-18"
   },
-  "run_at": "2026-11-16T12:47:37Z",
+  "run_at": "2026-11-23T14:40:42Z",
   "mode": "test-instance",
   "test_instance": {
     "software": "Eclipse BaSyx DPP API",
-    "version": "1.1.4",
-    "release": "https://github.com/eclipse-basyx/basyx-go-components/releases/tag/v1.1.4",
+    "version": "1.1.5",
+    "release": "https://github.com/eclipse-basyx/basyx-go-components/releases/tag/v1.1.5",
     "images": [
-      "eclipsebasyx/dppapi-go:1.1.4@sha256:a5364866f2d6c2727f98b82af5594e4fa7e35578a5ae0afb7bd66103f6a5891b",
-      "eclipsebasyx/basyxconfigurationservice-go:1.1.4@sha256:b20a2c1e2634862fd45e7d7b14531e7d39b76cf5532323e679daa62750410aab",
-      "postgres:18@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc"
+      "eclipsebasyx/dppapi-go:1.1.5@sha256:3586ef529d2ed545cb9d6148a9e61e7c6890480114b7604bd215d4809088dfe9",
+      "eclipsebasyx/basyxconfigurationservice-go:1.1.5@sha256:dadb52dcb345ec1695671217cb42d48f774f214ff018d133cbf36cf3ae109ef3",
+      "postgres:18@sha256:eb63372c1e05c755f55fa30cbd07aecc443676fc6c0fa90b9002d01537841e1a"
     ],
-    "started_at": "2026-11-16T12:47:37Z",
+    "started_at": "2026-11-23T14:40:42Z",
     "setup": "https://github.com/OwnYourData/dpp-validator/tree/main/test-instances/eclipse-basyx-dpp-api",
-    "test_passport": "https://raw.githubusercontent.com/eclipse-basyx/basyx-go-components/v1.1.4/examples/BaSyxDPPAPIExample/sample-dpp.json",
+    "test_passport": "https://raw.githubusercontent.com/eclipse-basyx/basyx-go-components/v1.1.5/examples/BaSyxDPPAPIExample/sample-dpp.json",
     "test_data": {
       "productId": "https://www.example.org/1234545",
       "dppId": "https://www.example.org/batterypassport/1234545",

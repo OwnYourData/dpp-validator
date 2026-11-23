@@ -1,6 +1,6 @@
 {
   "service_id": "virtual-vehicle-agentport",
-  "checked_at": "2026-11-22T12:36:27Z",
+  "checked_at": "2026-11-23T14:39:17Z",
   "dpplint": "https://dpplint.ownyourdata.eu",
   "passports": [
     {
@@ -16,7 +16,7 @@
         "total": 4,
         "warnings": 0,
         "skipped": 2,
-        "proposed_failed": 1
+        "proposed_failed": 0
       },
       "criteria": [
         {
@@ -24,7 +24,7 @@
           "title": "Battery passport exposes the public Annex XIII data",
           "status": "proposed",
           "result": "skipped",
-          "reason_code": "not_applicable",
+          "reason_code": "not_evaluated",
           "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/28c3c1d/criteria/README.md#dpp-bat-002"
         },
         {
@@ -138,12 +138,12 @@
           "history": {
             "criterion": "DPP-ID-001",
             "period_days": 30,
-            "runs": 25,
+            "runs": 26,
             "failed": 2,
             "from": "2026-10-29",
-            "to": "2026-11-22"
+            "to": "2026-11-23"
           },
-          "message": "DPP-ID-001 failed in 2 of 25 runs from 2026-10-29 to 2026-11-22: 2026-10-31, 2026-11-01"
+          "message": "DPP-ID-001 failed in 2 of 26 runs from 2026-10-29 to 2026-11-23: 2026-10-31, 2026-11-01"
         },
         {
           "id": "DPP-ID-009",
@@ -156,7 +156,7 @@
           "id": "DPP-ID-010",
           "title": "Facility identifier follows an EN 18219 scheme",
           "status": "proposed",
-          "result": "failed",
+          "result": "passed",
           "description_url": "https://github.com/OwnYourData/dpp-criteria/blob/28c3c1d/criteria/README.md#dpp-id-010"
         },
         {
